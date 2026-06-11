@@ -16,22 +16,22 @@ MonoBehaviour:
   themeName: CLASSIC
   price: 500
   icon: {fileID: 21300000, guid: 68e35baff2c6e81499886f738463b8fa, type: 3}
-  isUnlockedByDefault: 1
+  isUnlockedByDefault: 0
   visualType: 0
   headPrefab: {fileID: 0}
   headSprite: {fileID: 21300000, guid: 7147cd20c05c33242888ca49f92d76ee, type: 3}
-  headScale: 0.2
+  headScale: 0.1
   headRotationOffset: 0
   headSortingOrder: 2
   showHeadOutline: 0
   headOutlineColor: {r: 0, g: 0, b: 0, a: 1}
-  headOutlineScale: 1.2
+  headOutlineScale: 1
   overrideColor: 1
   themeColor: {r: 0.4156863, g: 0.6, b: 1, a: 1}
   lineSmoothness: 5
   lineLayers:
   - layerName: Core
-    width: 0.4
+    width: 0.2
     endWidth: -1
     material: {fileID: 0}
     color: {r: 0.4156863, g: 0.6, b: 1, a: 1}

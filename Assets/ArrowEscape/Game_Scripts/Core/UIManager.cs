@@ -2,12 +2,16 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using System;
 
 namespace Core
 {
     public class UIManager : MonoBehaviour
     {
         public static UIManager Instance { get; private set; }
+
+        [Header("Script")]
+        public HomeScreenUI homeScreenUI;
 
         [Header("In-Game UI")]
         public GameObject inGameUI;
@@ -16,6 +20,8 @@ namespace Core
         public TextMeshProUGUI levelText;
         public TextMeshProUGUI coinText; // New Coin Text
         public Transform coinIconTransform; // Target for coin animation
+        public Button homeButton;
+        public Button retryButton;
 
         [Header("Hearts UI")]
         public GameObject heartUIObj;
@@ -116,13 +122,33 @@ namespace Core
 
             // Start checking for ad availability
             StartCoroutine(CheckAdAvailabilityRoutine());
-            
+
             // Initialize Coin UI
             if (CurrencyManager.Instance != null)
             {
                 UpdateCoinUI(CurrencyManager.Instance.Coins);
                 CurrencyManager.Instance.OnCoinsChanged += UpdateCoinUI;
             }
+
+            if (homeButton != null)
+            {
+                homeButton.onClick.AddListener(OnClickHome);
+            }
+            if (retryButton != null)
+            {
+                retryButton.onClick.AddListener(OnClickRetry);
+            }
+        }
+
+        private void OnClickRetry()
+        {
+            LevelManager.Instance.LoadAndStart();
+        }
+
+        private void OnClickHome()
+        {
+            LevelManager.Instance.ClearLevel();
+            homeScreenUI.Show();
         }
 
         private void OnDestroy()
@@ -194,7 +220,7 @@ namespace Core
                 var text = gridVisualizerButton.GetComponentInChildren<TextMeshProUGUI>();
                 if (text != null) text.text = $"({gridCount})";
             }
-            
+
             if (legalMovesButton != null)
             {
                 var text = legalMovesButton.GetComponentInChildren<TextMeshProUGUI>();
@@ -207,14 +233,14 @@ namespace Core
         {
             isSequenceRunning = false; // Reset flag when showing UI
             SetInGameUIActive(false);
-            
+
             if (winPanel != null)
             {
                 winPanel.SetActive(true);
                 if (winLevelText != null) winLevelText.text = $"COMPLETED";
                 if (winImage != null) StartCoroutine(AnimatePopup(winImage.transform, 0.5f));
             }
-            
+
             if (losePanel != null) losePanel.SetActive(false);
         }
 
@@ -222,14 +248,14 @@ namespace Core
         {
             isSequenceRunning = false; // Reset flag when showing UI
             SetInGameUIActive(false);
-            
+
             if (losePanel != null)
             {
                 losePanel.SetActive(true);
                 if (loseLevelText != null) loseLevelText.text = $"FAILED";
                 if (loseImage != null) StartCoroutine(AnimatePopup(loseImage.transform, 0.5f));
             }
-            
+
             if (winPanel != null) winPanel.SetActive(false);
         }
 
@@ -272,12 +298,12 @@ namespace Core
             AudioManager.Instance?.PlayButtonSound();
 
             // Award coins and play animation locally
-            int rewardAmount = 50;
+            int rewardAmount = 500;
             if (CurrencyManager.Instance != null)
             {
                 CurrencyManager.Instance.AddCoins(rewardAmount);
                 // Trigger Animation from center of screen by default
-                CoinFeedbackManager.Instance?.PlayCoinAnimation(Vector3.zero); 
+                CoinFeedbackManager.Instance?.PlayCoinAnimation(Vector3.zero);
             }
 
             // Wait for animation to finish (approx 1.5s)
@@ -285,7 +311,7 @@ namespace Core
 
             HideAll();
             LevelManager.Instance?.LoadNextLevel();
-            
+
             // Note: isSequenceRunning will be reset in ShowWinUI/ShowLoseUI of next level or Reload
         }
 
@@ -316,7 +342,7 @@ namespace Core
             {
                 Debugging.GridVisualizer.Instance?.SetVisualizerState(true);
             }
-            else 
+            else
             {
                 // Show purchase dialog with both options
                 if (PurchaseDialog.Instance != null)
@@ -325,11 +351,13 @@ namespace Core
                         title: "Get Grid Visualizer",
                         description: "Choose how to get 3 Grid PowerUps",
                         coinCost: 100,
-                        onCoinPurchaseCallback: () => {
+                        onCoinPurchaseCallback: () =>
+                        {
                             LevelManager.Instance.AddGridPowerUps(3);
                             Debug.Log("Purchased 3 Grid PowerUps with coins!");
                         },
-                        onAdPurchaseCallback: () => {
+                        onAdPurchaseCallback: () =>
+                        {
                             LevelManager.Instance.AddGridPowerUps(3);
                             Debug.Log("Earned 3 Grid PowerUps from ad!");
                         }
@@ -347,7 +375,7 @@ namespace Core
             {
                 LevelManager.Instance.ShowLegalMoves();
             }
-            else 
+            else
             {
                 // Show purchase dialog with both options
                 if (PurchaseDialog.Instance != null)
@@ -356,11 +384,13 @@ namespace Core
                         title: "Get Hints",
                         description: "Choose how to get 3 Hint PowerUps",
                         coinCost: 100,
-                        onCoinPurchaseCallback: () => {
+                        onCoinPurchaseCallback: () =>
+                        {
                             LevelManager.Instance.AddHintPowerUps(3);
                             Debug.Log("Purchased 3 Hint PowerUps with coins!");
                         },
-                        onAdPurchaseCallback: () => {
+                        onAdPurchaseCallback: () =>
+                        {
                             LevelManager.Instance.AddHintPowerUps(3);
                             Debug.Log("Earned 3 Hint PowerUps from ad!");
                         }
@@ -373,16 +403,18 @@ namespace Core
         {
             if (LevelManager.Instance == null || isSequenceRunning) return;
 
-             // Check Ads or Coins
+            // Check Ads or Coins
             if (AdsManager.Instance != null && AdsManager.Instance.enableAds)
             {
                 isSequenceRunning = true;
                 if (shopButton != null) shopButton.interactable = false;
 
-                AdsManager.Instance.ShowRewardedAd(() => {
+                AdsManager.Instance.ShowRewardedAd(() =>
+                {
                     LevelManager.Instance.LoadNextLevel();
                     Debug.Log("Ad watched! Level skipped.");
-                }, () => {
+                }, () =>
+                {
                     isSequenceRunning = false;
                     if (shopButton != null) shopButton.interactable = true;
                     Debug.Log("Ad failed or cancelled.");
@@ -402,15 +434,15 @@ namespace Core
                 }
             }
         }
-        
+
         private void OnBackgroundToggleClicked()
         {
             CameraBackgroundToggler.Instance?.ToggleBackground();
         }
-        
+
         private void HideAllLines()
         {
-             Debugging.GridVisualizer.Instance?.SetVisualizerState(false);
+            Debugging.GridVisualizer.Instance?.SetVisualizerState(false);
         }
 
         private IEnumerator AnimateTextChange(TextMeshProUGUI target, string newContent)
@@ -451,7 +483,7 @@ namespace Core
                 float t = elapsed / duration;
                 // Elastic ease out
                 float scale = Mathf.Sin(-13 * (t + 1) * Mathf.PI * 0.5f) * Mathf.Pow(2, -10 * t) + 1;
-                
+
                 target.localScale = Vector3.one * scale;
                 elapsed += Time.deltaTime;
                 yield return null;
@@ -472,7 +504,7 @@ namespace Core
                 {
                     shopButton.interactable = canInteract;
                 }
-                
+
                 // Update PowerUp buttons
                 if (LevelManager.Instance != null)
                 {
@@ -497,7 +529,7 @@ namespace Core
                         bool canUseHint = LevelManager.Instance.HintPowerUps > 0 || canBuy;
                         legalMovesButton.interactable = canUseHint && canInteract;
                     }
-                    
+
                     // Skip Level Button
                     if (skipLevelButton != null)
                     {

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static Core.LevelManager;
 
 namespace Data
 {
@@ -7,7 +8,11 @@ namespace Data
     public class LevelData : ScriptableObject
     {
         public Vector2Int gridDimensions = new Vector2Int(5, 5);
+        public float defaultCameraSize = 13;
+        public float minZoom;
+        public float maxZoom;
         public int maxMoves = 10; // Maximum moves allowed to complete this level
+        public GameWinMode gameWinMode;
         public List<ArrowDefinition> arrows = new List<ArrowDefinition>();
     }
 

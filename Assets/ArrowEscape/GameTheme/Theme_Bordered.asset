@@ -16,14 +16,14 @@ MonoBehaviour:
   themeName: OUTLINE
   price: 750
   icon: {fileID: 21300000, guid: bc21dbbe2db9d784d883b055498847b0, type: 3}
-  isUnlockedByDefault: 0
+  isUnlockedByDefault: 1
   visualType: 0
   headPrefab: {fileID: 0}
   headSprite: {fileID: 21300000, guid: 7147cd20c05c33242888ca49f92d76ee, type: 3}
   headScale: 0.2
   headRotationOffset: 0
   headSortingOrder: 2
-  showHeadOutline: 1
+  showHeadOutline: 0
   headOutlineColor: {r: 1, g: 1, b: 1, a: 1}
   headOutlineScale: 1.3
   overrideColor: 1
@@ -31,8 +31,8 @@ MonoBehaviour:
   lineSmoothness: 5
   lineLayers:
   - layerName: Border
-    width: 0.5
-    endWidth: 0.5
+    width: 0
+    endWidth: 0
     material: {fileID: 0}
     color: {r: 1, g: 1, b: 1, a: 1}
     useArrowColor: 0
@@ -42,8 +42,8 @@ MonoBehaviour:
     endOffset: 0
     scrollSpeed: 0
   - layerName: Core
-    width: 0.35
-    endWidth: 0.35
+    width: 0.2
+    endWidth: 0.2
     material: {fileID: 0}
     color: {r: 0.20392159, g: 0.2392157, b: 0.29411766, a: 1}
     useArrowColor: 0

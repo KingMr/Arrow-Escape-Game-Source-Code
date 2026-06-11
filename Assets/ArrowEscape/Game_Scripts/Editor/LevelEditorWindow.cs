@@ -11,6 +11,7 @@ namespace EditorTools
         private Color currentArrowColor = Color.red;
         private List<Vector2Int> currentPaintingPath = new List<Vector2Int>();
         private bool isPainting = false;
+        private int selectedArrowIndex = -1;
         
         private const float CellSize = 40f;
         private const float Padding = 20f;
@@ -59,6 +60,8 @@ namespace EditorTools
             GUILayout.EndScrollView();
         }
 
+        private Vector2 arrowListScroll;
+
         private void HandleZoomInput()
         {
             Event e = Event.current;
@@ -86,8 +89,21 @@ namespace EditorTools
 
         private void DrawToolbar()
         {
+            // Grid Size + Row/Column controls
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Grid Size:");
+            GUILayout.Label("Grid:", GUILayout.Width(40));
+            if (GUILayout.Button("← Col", GUILayout.Width(60)))
+                AddColumnLeft();
+            if (GUILayout.Button("Col →", GUILayout.Width(60)))
+                AddColumnRight();
+            if (GUILayout.Button("↑ Row", GUILayout.Width(60)))
+                AddRowTop();
+            if (GUILayout.Button("Row ↓", GUILayout.Width(60)))
+                AddRowBottom();
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Size:", GUILayout.Width(40));
             currentLevelData.gridDimensions = EditorGUILayout.Vector2IntField("", currentLevelData.gridDimensions);
             GUILayout.EndHorizontal();
 
@@ -112,6 +128,30 @@ namespace EditorTools
             zoomScale = EditorGUILayout.Slider(zoomScale, 0.2f, 3.0f);
             GUILayout.EndHorizontal();
 
+            // Arrow List with Clear buttons
+            GUILayout.Label("Arrows:", EditorStyles.boldLabel);
+            arrowListScroll = GUILayout.BeginScrollView(arrowListScroll, GUILayout.MaxHeight(120));
+            for (int i = 0; i < currentLevelData.arrows.Count; i++)
+            {
+                var arrow = currentLevelData.arrows[i];
+                GUILayout.BeginHorizontal();
+                Color orig = GUI.backgroundColor;
+                GUI.backgroundColor = arrow.arrowColor;
+                if (GUILayout.Button("   ", GUILayout.Width(24), GUILayout.Height(18)))
+                {
+                    selectedArrowIndex = i;
+                    currentArrowColor = arrow.arrowColor;
+                }
+                GUI.backgroundColor = orig;
+                GUILayout.Label($"Arrow {i + 1} ({arrow.occupiedPositions?.Count ?? 0} cells)", GUILayout.MinWidth(120));
+                if (GUILayout.Button("Clear", GUILayout.Width(50)))
+                {
+                    DeleteArrow(i);
+                }
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.EndScrollView();
+
             if (GUILayout.Button("Clear All Arrows"))
             {
                 if (EditorUtility.DisplayDialog("Clear Level", "Are you sure you want to clear all arrows?", "Yes", "No"))
@@ -119,9 +159,66 @@ namespace EditorTools
                     currentLevelData.arrows.Clear();
                     isPainting = false;
                     currentPaintingPath.Clear();
+                    selectedArrowIndex = -1;
                     EditorUtility.SetDirty(currentLevelData);
                 }
             }
+        }
+
+        private void DeleteArrow(int index)
+        {
+            if (index < 0 || index >= currentLevelData.arrows.Count) return;
+            currentLevelData.arrows.RemoveAt(index);
+            if (selectedArrowIndex == index)
+                selectedArrowIndex = -1;
+            else if (selectedArrowIndex > index)
+                selectedArrowIndex--;
+            EditorUtility.SetDirty(currentLevelData);
+            Repaint();
+        }
+
+        private void AddColumnLeft()
+        {
+            currentLevelData.gridDimensions.x++;
+            foreach (var arrow in currentLevelData.arrows)
+            {
+                if (arrow.occupiedPositions == null) continue;
+                for (int i = 0; i < arrow.occupiedPositions.Count; i++)
+                {
+                    arrow.occupiedPositions[i] = new Vector2Int(arrow.occupiedPositions[i].x + 1, arrow.occupiedPositions[i].y);
+                }
+            }
+            EditorUtility.SetDirty(currentLevelData);
+            Repaint();
+        }
+
+        private void AddColumnRight()
+        {
+            currentLevelData.gridDimensions.x++;
+            EditorUtility.SetDirty(currentLevelData);
+            Repaint();
+        }
+
+        private void AddRowTop()
+        {
+            currentLevelData.gridDimensions.y++;
+            EditorUtility.SetDirty(currentLevelData);
+            Repaint();
+        }
+
+        private void AddRowBottom()
+        {
+            currentLevelData.gridDimensions.y++;
+            foreach (var arrow in currentLevelData.arrows)
+            {
+                if (arrow.occupiedPositions == null) continue;
+                for (int i = 0; i < arrow.occupiedPositions.Count; i++)
+                {
+                    arrow.occupiedPositions[i] = new Vector2Int(arrow.occupiedPositions[i].x, arrow.occupiedPositions[i].y + 1);
+                }
+            }
+            EditorUtility.SetDirty(currentLevelData);
+            Repaint();
         }
 
         private void DrawGridArea(float cellSize)
@@ -145,9 +242,13 @@ namespace EditorTools
             }
 
             // Draw Existing Arrows
-            foreach (var arrow in currentLevelData.arrows)
+            for (int i = 0; i < currentLevelData.arrows.Count; i++)
             {
-                DrawArrow(arrow, gridRect, cellSize);
+                DrawArrow(currentLevelData.arrows[i], gridRect, cellSize);
+                if (i == selectedArrowIndex)
+                {
+                    DrawArrowSelection(currentLevelData.arrows[i], gridRect, cellSize);
+                }
             }
 
             // Draw Currently Painting Arrow
@@ -232,6 +333,20 @@ namespace EditorTools
                 }
 
                 Handles.DrawAAConvexPolygon(new Vector3[] { p1, p2, p3 });
+            }
+        }
+
+        private void DrawArrowSelection(ArrowDefinition arrow, Rect gridRect, float cellSize)
+        {
+            if (arrow.occupiedPositions == null || arrow.occupiedPositions.Count == 0) return;
+            foreach (var pos in arrow.occupiedPositions)
+            {
+                float guiX = gridRect.x + pos.x * cellSize;
+                float guiY = gridRect.y + (currentLevelData.gridDimensions.y - 1 - pos.y) * cellSize;
+                EditorGUI.DrawRect(new Rect(guiX, guiY, cellSize, 2), Color.white);
+                EditorGUI.DrawRect(new Rect(guiX, guiY + cellSize - 2, cellSize, 2), Color.white);
+                EditorGUI.DrawRect(new Rect(guiX, guiY, 2, cellSize), Color.white);
+                EditorGUI.DrawRect(new Rect(guiX + cellSize - 2, guiY, 2, cellSize), Color.white);
             }
         }
 

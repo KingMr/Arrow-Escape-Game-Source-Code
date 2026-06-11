@@ -61,6 +61,21 @@ providers = {
 		priority = 210
 		defaultAction = null
 	}
+	"unity.ai.file.search" = {
+		active = true
+		priority = 85
+		defaultAction = null
+	}
+	asset_knowledge = {
+		active = true
+		priority = 99999
+		defaultAction = null
+	}
+	"unity.ai.pattern.search" = {
+		active = true
+		priority = 80
+		defaultAction = null
+	}
 }
 objectSelectors = {
 }
@@ -71,6 +86,8 @@ searchItemFavorites = [
 savedSearchesSortOrder = 0
 showSavedSearchPanel = false
 hideTabs = false
+indexOnEditorStartup = true
+logIndexingPerformanceReport = false
 expandedQueries = [
 ]
 queryBuilder = true
@@ -79,3 +96,4 @@ helperWidgetCurrentArea = "all"
 disabledIndexers = ""
 minIndexVariations = 2
 findProviderIndexHelper = true
+itemIconSize = 32

@@ -9,9 +9,9 @@ namespace Core
         [Header("Background Colors")]
         public Color color1 = new Color(0.1f, 0.1f, 0.15f); // Dark Navy
         public Color color2 = new Color(0.15f, 0.1f, 0.1f); // Dark Red/Brown
-        
+
         [Header("Dot Colors")]
-        public Color dotColor1 = new Color(0.2f, 0.2f, 0.3f); 
+        public Color dotColor1 = new Color(0.2f, 0.2f, 0.3f);
         public Color dotColor2 = new Color(0.3f, 0.2f, 0.2f);
 
         public float transitionDuration = 0.5f;
@@ -30,8 +30,8 @@ namespace Core
             mainCamera = Camera.main;
             if (mainCamera != null)
             {
-                mainCamera.backgroundColor = color1;
-                CurrentDotColor = dotColor1;
+                mainCamera.backgroundColor = color2;
+                CurrentDotColor = dotColor2;
             }
         }
 
@@ -40,7 +40,7 @@ namespace Core
             if (mainCamera == null) mainCamera = Camera.main;
             if (mainCamera == null) return;
 
-            isColor1 = !isColor1;
+            // isColor1 = !isColor1;
             Color targetBgColor = isColor1 ? color1 : color2;
             Color targetDotColor = isColor1 ? dotColor1 : dotColor2;
 

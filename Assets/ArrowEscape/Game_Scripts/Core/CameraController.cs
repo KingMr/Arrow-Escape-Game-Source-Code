@@ -15,7 +15,7 @@ namespace Core
         private Vector3 lastMousePosition;
         private bool isDragging = false;
         private Camera cam;
-        
+
         private Vector2 minBounds;
         private Vector2 maxBounds;
         private bool hasBounds = false;
@@ -34,12 +34,12 @@ namespace Core
             minBounds = new Vector2(-padding, -padding);
             maxBounds = new Vector2(gridDimensions.x + padding, gridDimensions.y + padding);
             hasBounds = true;
-            
+
             // Set max zoom to cover the whole grid with some margin
             float screenRatio = (float)Screen.width / Screen.height;
             float sizeY = gridDimensions.y / 2f + 1f;
             float sizeX = (gridDimensions.x / 2f + 1f) / screenRatio;
-            maxZoom = Mathf.Max(sizeY, sizeX) + 2f;
+            maxZoom = Mathf.Max(sizeY, sizeX) + 15f;
         }
 
         public void ResetCamera(Vector3 targetPosition, float targetSize, float duration)
@@ -116,7 +116,7 @@ namespace Core
         void HandlePan()
         {
             // If pinching, don't pan
-            if (Input.touchCount >= 2) 
+            if (Input.touchCount >= 2)
             {
                 isDragging = false;
                 return;
@@ -128,7 +128,7 @@ namespace Core
                 if (UnityEngine.EventSystems.EventSystem.current != null)
                 {
                     if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()) return;
-                    
+
                     // Check for touch UI interaction
                     if (Input.touchCount > 0 && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
                         return;
@@ -146,18 +146,18 @@ namespace Core
             if (isDragging && Input.GetMouseButton(0))
             {
                 Vector3 delta = Input.mousePosition - lastMousePosition;
-                
+
                 // Convert screen delta to world delta
                 // Units per pixel = (orthoSize * 2) / Screen.height
                 float unitsPerPixel = (cam.orthographicSize * 2f) / Screen.height;
-                
+
                 Vector3 move = new Vector3(delta.x * unitsPerPixel, delta.y * unitsPerPixel, 0);
-                
+
                 // Move camera opposite to drag
                 transform.position -= move;
-                
+
                 lastMousePosition = Input.mousePosition;
-                
+
                 ClampPosition();
             }
         }
@@ -165,7 +165,7 @@ namespace Core
         void ClampPosition()
         {
             if (!hasBounds) return;
-            
+
             Vector3 pos = transform.position;
             pos.x = Mathf.Clamp(pos.x, minBounds.x, maxBounds.x);
             pos.y = Mathf.Clamp(pos.y, minBounds.y, maxBounds.y);

@@ -8,7 +8,7 @@ namespace Core
     {
         // Event to notify when this arrow is moved (bool indicating if it was a valid move)
         public System.Action<bool> OnArrowMoved;
-        
+
         [Header("Theme Settings")]
         [Tooltip("Assign an Arrow Theme to override visuals.")]
         public ArrowTheme currentTheme;
@@ -16,16 +16,16 @@ namespace Core
         [Header("Legacy Visual Settings (Used if no Theme assigned)")]
         [Tooltip("Optional: Assign your own arrow sprite. If null, a procedural arrow will be generated.")]
         public Sprite customArrowSprite;
-        
+
         [Tooltip("Scale multiplier for custom arrow sprite (only applies if custom sprite is assigned)")]
         public float customArrowScale = 0.5f;
-        
+
         [Tooltip("Rotation offset in degrees for custom arrow sprite (only applies if custom sprite is assigned)")]
         public float customArrowRotationOffset = 0f;
-        
+
         [Tooltip("Use centered pivot for custom sprite (recommended: true for most sprites)")]
         public bool useCenteredPivot = true;
-        
+
         public List<Vector2Int> currentPositions = new List<Vector2Int>(); // 0 is head
         private GridSystem gridSystem;
         private bool isMoving = false;
@@ -49,10 +49,10 @@ namespace Core
             currentPositions = new List<Vector2Int>(startPositions);
             arrowColor = color;
             gridSystem = grid;
-            
+
             CreateHeadVisual();
             UpdateVisuals();
-            
+
             // Register initial occupancy
             foreach (var pos in currentPositions)
             {
@@ -64,16 +64,16 @@ namespace Core
         {
             if (headVisual != null) Destroy(headVisual);
             if (headOutlineVisual != null) Destroy(headOutlineVisual);
-            
+
             // Check for Prefab in Theme
             if (currentTheme != null && currentTheme.headPrefab != null)
             {
                 headVisual = Instantiate(currentTheme.headPrefab, transform);
                 headVisual.name = "HeadVisual_Prefab";
-                
+
                 // Apply Scale
                 headVisual.transform.localScale = Vector3.one * currentTheme.headScale;
-                
+
                 // If the prefab has a SpriteRenderer and we want to override color
                 if (currentTheme.overrideColor)
                 {
@@ -86,9 +86,9 @@ namespace Core
                 // Standard Sprite / Procedural Logic
                 headVisual = new GameObject("HeadVisual");
                 headVisual.transform.SetParent(transform);
-                
+
                 SpriteRenderer sr = headVisual.AddComponent<SpriteRenderer>();
-                
+
                 // Determine settings based on Theme or Legacy
                 Sprite spriteToUse = null;
                 float scaleToUse = 1.0f;
@@ -105,9 +105,9 @@ namespace Core
                         scaleToUse = currentTheme.headScale;
                         rotationOffset = currentTheme.headRotationOffset;
                         sortingOrder = currentTheme.headSortingOrder;
-                        useCentered = true; 
+                        useCentered = true;
                     }
-                    
+
                     if (currentTheme.overrideColor)
                     {
                         colorToUse = currentTheme.themeColor;
@@ -136,7 +136,7 @@ namespace Core
                     {
                         sr.sprite = spriteToUse;
                     }
-                    
+
                     headVisual.transform.localScale = Vector3.one * scaleToUse;
                 }
                 else
@@ -159,7 +159,7 @@ namespace Core
                     // Scale needs to be relative. If head is scaled, outline child scale multiplies.
                     // We want outline to be slightly larger.
                     headOutlineVisual.transform.localScale = Vector3.one * currentTheme.headOutlineScale;
-                    
+
                     SpriteRenderer outlineSr = headOutlineVisual.AddComponent<SpriteRenderer>();
                     outlineSr.sprite = sr.sprite;
                     outlineSr.color = currentTheme.headOutlineColor;
@@ -175,12 +175,12 @@ namespace Core
             texture.filterMode = FilterMode.Bilinear; // Smoother edges
             Color[] colors = new Color[size * size];
             for (int i = 0; i < colors.Length; i++) colors[i] = Color.clear;
-            
+
             // Dart Shape Logic - Optimized for blending
             // Tip at x=56, y=32
             // Base Wings at x=8, y=50 and y=14 (Width 36px)
             // Back Notch at x=16, y=32
-            
+
             Vector2 tip = new Vector2(56, 32);
             Vector2 baseTop = new Vector2(8, 50);
             Vector2 baseBot = new Vector2(8, 14);
@@ -193,17 +193,17 @@ namespace Core
                     // 1. Check if inside outer triangle (BaseTop -> Tip -> BaseBot)
                     // Upper edge: (8,50) to (56,32)
                     // Lower edge: (8,14) to (56,32)
-                    
+
                     // Slope = (32-50)/(56-8) = -18/48 = -0.375
                     // Upper: y <= -0.375(x-56) + 32 => y <= -0.375x + 53
                     // Lower: y >=  0.375(x-56) + 32 => y >=  0.375x + 11
-                    
+
                     float slope = 18f / 48f;
-                    
+
                     // Calculate distance from edges for anti-aliasing
                     float upperEdge = -slope * x + 53f;
                     float lowerEdge = slope * x + 11f;
-                    
+
                     bool insideOuter = (x >= 8) && (x <= 56) &&
                                        (y <= upperEdge) &&
                                        (y >= lowerEdge);
@@ -213,51 +213,51 @@ namespace Core
                         // 2. Check if outside inner notch triangle (BaseTop -> Notch -> BaseBot)
                         // Upper notch: (8,50) to (16,32)
                         // Lower notch: (8,14) to (16,32)
-                        
+
                         // Slope = (32-50)/(16-8) = -18/8 = -2.25
                         // Upper: y <= -2.25(x-16) + 32 => y <= -2.25x + 68
                         // Lower: y >=  2.25(x-16) + 32 => y >=  2.25x - 4
-                        
+
                         float notchSlope = 18f / 8f;
                         bool insideNotch = (x < 16) &&
                                            (y < -notchSlope * x + 68f) &&
-                                           (y >  notchSlope * x - 4f);
-                        
+                                           (y > notchSlope * x - 4f);
+
                         if (!insideNotch)
                         {
                             // Anti-aliasing: fade edges based on distance
                             float alpha = 1f;
-                            
+
                             // Distance from upper edge
                             float distUpper = upperEdge - y;
                             if (distUpper < 1.5f) alpha = Mathf.Min(alpha, distUpper / 1.5f);
-                            
+
                             // Distance from lower edge
                             float distLower = y - lowerEdge;
                             if (distLower < 1.5f) alpha = Mathf.Min(alpha, distLower / 1.5f);
-                            
+
                             // Distance from left edge
                             float distLeft = x - 8f;
                             if (distLeft < 1.5f && !insideNotch) alpha = Mathf.Min(alpha, distLeft / 1.5f);
-                            
+
                             colors[y * size + x] = new Color(1, 1, 1, alpha);
                         }
                     }
                 }
             }
-            
+
             texture.SetPixels(colors);
             texture.Apply();
-            
+
             // Pivot at (8, 32) which is the base x=8, center y=32.
             // This aligns the base of the arrow with the node position.
-            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(8f/64f, 0.5f));
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(8f / 64f, 0.5f));
         }
 
         private void OnMouseDown()
         {
             if (LevelManager.Instance != null && !LevelManager.Instance.IsGameActive) return;
-            
+
             isPressed = true;
             pressStartTime = Time.time;
             longPressTriggered = false;
@@ -288,13 +288,13 @@ namespace Core
                 if (Input.GetMouseButtonUp(0))
                 {
                     isPressed = false;
-                    
+
                     // Hide visual if it was shown
                     if (longPressTriggered)
                     {
                         GridVisualizer.Instance?.HidePreviewLine();
                     }
-                    
+
                     // If it was NOT a long press, AND we are still over the arrow, Trigger Move
                     if (!longPressTriggered && isMouseOver)
                     {
@@ -342,21 +342,21 @@ namespace Core
                 VFXManager.Instance?.PlayBlockedAnimation(this);
                 return;
             }
-            
+
             if (!isMoving)
             {
                 bool isClear = CheckPathClear();
                 // Notify that a move is being made (counts even if blocked)
                 OnArrowMoved?.Invoke(isClear);
-                
+
                 if (isClear)
                 {
                     AudioManager.Instance?.PlayMoveSound();
-                    
+
                     // IMMEDIATELY clear all cells occupied by this arrow
                     // This allows other arrows to start moving without waiting
                     ClearAllOccupancy();
-                    
+
                     // Now start the movement animation
                     StartCoroutine(MoveRoutine());
                 }
@@ -408,17 +408,17 @@ namespace Core
                     StopCoroutine(pulseCoroutine);
                     pulseCoroutine = null;
                 }
-                
+
                 // Reset scale to default
-                transform.localScale = Vector3.one; 
+                transform.localScale = Vector3.one;
                 if (headVisual != null)
                 {
-                     // Reset head visual scale based on theme or legacy
-                     float targetScale = 1.2f;
-                     if (currentTheme != null) targetScale = currentTheme.headScale;
-                     else if (customArrowSprite != null) targetScale = customArrowScale;
-                     
-                     headVisual.transform.localScale = Vector3.one * targetScale;
+                    // Reset head visual scale based on theme or legacy
+                    float targetScale = 1.2f;
+                    if (currentTheme != null) targetScale = currentTheme.headScale;
+                    else if (customArrowSprite != null) targetScale = customArrowScale;
+
+                    headVisual.transform.localScale = Vector3.one * targetScale;
                 }
             }
         }
@@ -428,7 +428,7 @@ namespace Core
             float duration = 0.5f;
             Vector3 originalScale = headVisual != null ? headVisual.transform.localScale : Vector3.one;
             Vector3 targetScale = originalScale * 1.3f;
-            
+
             while (true)
             {
                 float t = Mathf.PingPong(Time.time, duration) / duration;
@@ -470,7 +470,7 @@ namespace Core
                 // Move one step
                 bool moved = TryMove();
                 if (!moved) break;
-                
+
                 // Check if destroyed (Exit condition)
                 if (this == null || gameObject == null) yield break;
 
@@ -517,7 +517,7 @@ namespace Core
             currentPositions.RemoveAt(currentPositions.Count - 1);
 
             // Don't register occupancy during movement - cells are already cleared
-            
+
             UpdateVisuals();
 
             // Check for destruction (when fully off-screen)
@@ -533,7 +533,7 @@ namespace Core
         {
             // Check if ALL segments are outside the expanded bounds
             int margin = 2; // Distance to move before destroying (reduced from 4 for faster cleanup)
-            
+
             foreach (var pos in currentPositions)
             {
                 // If ANY part is still within the "visible" area (Grid + Margin), don't destroy
@@ -563,7 +563,7 @@ namespace Core
                 // Clear line renderers if they exist
                 ClearLineRenderers();
             }
-            
+
             UpdateColliders();
             UpdateHeadRotation();
         }
@@ -572,14 +572,14 @@ namespace Core
         {
             // Get Layers from Theme or Default
             List<LineLayer> layers = new List<LineLayer>();
-            int smoothness = 5;
-            
+            int smoothness = 0;
+
             if (currentTheme != null)
             {
                 if (currentTheme.lineLayers.Count > 0) layers.AddRange(currentTheme.lineLayers);
                 smoothness = currentTheme.lineSmoothness;
             }
-            
+
             if (layers.Count == 0)
             {
                 // Default Layer
@@ -601,7 +601,7 @@ namespace Core
                 LineRenderer lr = lineObj.AddComponent<LineRenderer>();
                 lineRenderers.Add(lr);
             }
-            
+
             // Remove excess
             while (lineRenderers.Count > layers.Count)
             {
@@ -622,6 +622,8 @@ namespace Core
             // We clamp it to 0.5f to ensure it doesn't exceed the segment half-length.
             // Using 0.6f factor provides a safety margin so InnerRadius > 0.
             float cornerRadius = Mathf.Clamp(Mathf.Max(0.35f, maxWidth * 0.6f), 0.35f, 0.5f);
+            cornerRadius = 0.2f;
+            Debug.Log($"Corner Radius - {cornerRadius}");
 
             // Generate smooth path with interpolated corners
             List<Vector3> smoothPath = GenerateSmoothPath(currentPositions, smoothness, cornerRadius);
@@ -631,32 +633,32 @@ namespace Core
             {
                 LineRenderer lr = lineRenderers[i];
                 LineLayer layer = layers[i];
-                
+
                 // Apply start and end offsets to create a trimmed path for this layer
                 List<Vector3> layerPath = ApplyOffsets(smoothPath, layer.startOffset, layer.endOffset);
-                
+
                 lr.positionCount = layerPath.Count;
                 lr.startWidth = layer.width;
                 // If endWidth is negative, use startWidth (constant width)
                 lr.endWidth = layer.endWidth >= 0 ? layer.endWidth : layer.width;
-                
+
                 // Use alignment mode to ensure corners are properly rounded
                 lr.alignment = LineAlignment.TransformZ;
-                
+
                 // Scale corner and cap vertices based on line width for smooth bending at any width
                 float widthFactor = Mathf.Max(layer.width, layer.endWidth >= 0 ? layer.endWidth : layer.width);
                 int scaledSmoothness = Mathf.Max(smoothness, Mathf.CeilToInt(smoothness * widthFactor * 2f));
-                
+
                 // IMPORTANT: Set numCornerVertices to 0 because we are using a manually smoothed path (Bezier).
                 // Adding LineRenderer corner vertices on top of a smoothed path causes artifacts (glitch lines).
                 lr.numCornerVertices = 0;
                 lr.numCapVertices = scaledSmoothness;
-                
+
                 if (layer.material != null) lr.material = layer.material;
                 else lr.material = new Material(Shader.Find("Sprites/Default"));
-                
+
                 lr.textureMode = layer.textureMode;
-                
+
                 // Apply color - multiply with arrow color if useArrowColor is true
                 Color finalColor = layer.color;
                 if (layer.useArrowColor)
@@ -668,7 +670,7 @@ namespace Core
                         layer.color.a * arrowColor.a
                     );
                 }
-                
+
                 lr.startColor = finalColor;
                 lr.endColor = finalColor;
                 lr.sortingOrder = layer.sortingOrderOffset;
@@ -676,7 +678,7 @@ namespace Core
                 // Set all positions from layer-specific path
                 lr.SetPositions(layerPath.ToArray());
             }
-            
+
             // Disable main LineRenderer if it exists (we use children now)
             LineRenderer mainLr = GetComponent<LineRenderer>();
             if (mainLr != null) mainLr.enabled = false;
@@ -685,7 +687,7 @@ namespace Core
         private List<Vector3> GenerateSmoothPath(List<Vector2Int> positions, int cornerSmoothness, float cornerRadius)
         {
             List<Vector3> smoothPath = new List<Vector3>();
-            
+
             if (positions.Count == 0) return smoothPath;
             if (positions.Count == 1)
             {
@@ -749,11 +751,11 @@ namespace Core
             float u = 1 - t;
             float tt = t * t;
             float uu = u * u;
-            
+
             Vector3 p = uu * p0;
             p += 2 * u * t * p1;
             p += tt * p2;
-            
+
             return p;
         }
 
@@ -775,7 +777,7 @@ namespace Core
             // Calculate actual start and end distances
             float startDist = Mathf.Clamp(startOffset, 0, totalLength * 0.9f);
             float endDist = Mathf.Clamp(endOffset, 0, totalLength * 0.9f);
-            
+
             // If offsets would eliminate the entire path, return a minimal path
             if (startDist + endDist >= totalLength)
             {
@@ -791,7 +793,7 @@ namespace Core
             for (int i = 0; i < path.Count - 1; i++)
             {
                 float segmentLength = segmentLengths[i];
-                
+
                 if (!startFound && accumulatedDist + segmentLength >= startDist)
                 {
                     // Interpolate to find exact start point
@@ -799,18 +801,18 @@ namespace Core
                     Vector3 startPoint = Vector3.Lerp(path[i], path[i + 1], t);
                     trimmedPath.Add(startPoint);
                     startFound = true;
-                    
+
                     // Add remaining points until we reach end offset
                     for (int j = i + 1; j < path.Count; j++)
                     {
                         float distToEnd = totalLength - accumulatedDist - segmentLength;
-                        
+
                         // Check if we need to stop before this point
                         if (j < path.Count - 1)
                         {
                             float nextSegmentLength = segmentLengths[j];
                             float distAtNextPoint = totalLength - distToEnd + nextSegmentLength;
-                            
+
                             if (totalLength - distAtNextPoint < endDist)
                             {
                                 // Interpolate to find exact end point
@@ -821,18 +823,18 @@ namespace Core
                                 return trimmedPath;
                             }
                         }
-                        
+
                         trimmedPath.Add(path[j]);
-                        
+
                         if (j < path.Count - 1)
                         {
                             distToEnd -= segmentLengths[j];
                         }
                     }
-                    
+
                     return trimmedPath;
                 }
-                
+
                 accumulatedDist += segmentLength;
             }
 
@@ -847,7 +849,7 @@ namespace Core
                 if (lr != null) Destroy(lr.gameObject);
             }
             lineRenderers.Clear();
-            
+
             LineRenderer mainLr = GetComponent<LineRenderer>();
             if (mainLr != null) mainLr.enabled = false;
         }
@@ -855,7 +857,7 @@ namespace Core
         private void UpdateSpriteVisuals()
         {
             int requiredBodyCount = Mathf.Max(0, currentPositions.Count - 1);
-            
+
             // Add missing
             while (bodyVisuals.Count < requiredBodyCount)
             {
@@ -864,7 +866,7 @@ namespace Core
                 bodyPart.AddComponent<SpriteRenderer>();
                 bodyVisuals.Add(bodyPart);
             }
-            
+
             // Remove excess
             while (bodyVisuals.Count > requiredBodyCount)
             {
@@ -892,7 +894,7 @@ namespace Core
                 Vector2Int pos = currentPositions[i + 1];
                 GameObject visual = bodyVisuals[i];
                 SpriteRenderer sr = visual.GetComponent<SpriteRenderer>();
-                
+
                 sr.sprite = bodySprite;
                 sr.color = color;
                 sr.sortingOrder = 1; // Below head
@@ -927,16 +929,16 @@ namespace Core
         private void UpdateHeadRotation()
         {
             if (headVisual == null || currentPositions.Count == 0) return;
-            
+
             Vector2Int dir = GetDirection();
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            
+
             float rotationOffset = 0f;
             if (currentTheme != null) rotationOffset = currentTheme.headRotationOffset;
             else if (customArrowSprite != null) rotationOffset = customArrowRotationOffset;
-            
+
             angle += rotationOffset;
-            
+
             headVisual.transform.rotation = Quaternion.Euler(0, 0, angle);
             headVisual.transform.position = new Vector3(currentPositions[0].x, currentPositions[0].y, 0);
         }
@@ -956,7 +958,7 @@ namespace Core
                 BoxCollider2D col = gameObject.AddComponent<BoxCollider2D>();
                 col.offset = new Vector2(pos.x, pos.y);
                 col.size = Vector2.one;
-                col.isTrigger = true; 
+                col.isTrigger = true;
             }
         }
 
@@ -964,7 +966,7 @@ namespace Core
         private void OnDestroy()
         {
             Debug.Log($"Arrow OnDestroy called");
-            
+
             if (gridSystem != null)
             {
                 foreach (var pos in currentPositions)

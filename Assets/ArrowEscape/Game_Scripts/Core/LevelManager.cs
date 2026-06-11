@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Data;
 using TMPro;
 using UnityEngine.UI;
+using EasyButtons;
 
 namespace Core
 {
@@ -16,13 +17,13 @@ namespace Core
         public int currentLevelIndex = 0;
         public int GridPowerUps { get; private set; }
         public int HintPowerUps { get; private set; }
-        
+
         public bool GridUnlockedForLevel { get; private set; }
 
         private const string PREF_LEVEL_INDEX = "CurrentLevelIndex";
         private const string PREF_GRID_POWERUPS = "GridPowerUps";
         private const string PREF_HINT_POWERUPS = "HintPowerUps";
-        
+
 
         [Header("Prefabs")]
         public GameObject arrowPrefab;
@@ -54,6 +55,15 @@ namespace Core
         {
             LoadData();
 
+            // if (levels.Count > 0)
+            //     LoadLevel(currentLevelIndex);
+            // else
+            //     Debug.LogError("No levels assigned to LevelManager!");
+        }
+        public void LoadAndStart()
+        {
+            LoadData();
+
             if (levels.Count > 0)
                 LoadLevel(currentLevelIndex);
             else
@@ -73,6 +83,7 @@ namespace Core
         private Vector3 defaultCameraPos;
         private float defaultCameraSize;
 
+        [Button]
         void LoadLevel(int levelIndex)
         {
             isLevelLoading = false; // Reset loading flag
@@ -81,7 +92,7 @@ namespace Core
             UIManager.Instance?.HideAll();
 
             ClearLevel();
-            
+
             // Reset level specific states
             GridUnlockedForLevel = false;
             Debugging.GridVisualizer.Instance?.SetVisualizerState(false);
@@ -97,6 +108,7 @@ namespace Core
             movesRemaining = levelData.maxMoves;
             totalArrows = levelData.arrows.Count;
             IsGameActive = true;
+            gameWinMode = levelData.gameWinMode;
 
             if (gameWinMode == GameWinMode.Moves)
             {
@@ -117,14 +129,17 @@ namespace Core
                 levelData.gridDimensions.x / 2f - 0.5f,
                 levelData.gridDimensions.y / 2f - 0.5f,
                 -10);
-            
+
             Camera.main.transform.position = defaultCameraPos;
 
             float screenRatio = (float)Screen.width / Screen.height;
             float targetSizeY = levelData.gridDimensions.y / 2f + 1f;
             float targetSizeX = (levelData.gridDimensions.x / 2f + 1f) / screenRatio;
-            
-            defaultCameraSize = Mathf.Max(targetSizeY, targetSizeX);
+
+            if (levelData.defaultCameraSize == 0)
+                defaultCameraSize = Mathf.Max(targetSizeY, targetSizeX);
+            else
+                defaultCameraSize = levelData.defaultCameraSize;
             Camera.main.orthographicSize = defaultCameraSize;
 
             // Setup Camera Controller
@@ -145,8 +160,10 @@ namespace Core
             Debug.Log($"Level {levelIndex + 1} loaded. Moves: {movesRemaining}");
         }
 
-        void ClearLevel()
+        public void ClearLevel()
         {
+            CancelInvoke(nameof(CheckGameState));
+
             // Destroy arrows
             foreach (var arrow in activeArrows)
                 if (arrow != null) Destroy(arrow.gameObject);
@@ -168,13 +185,13 @@ namespace Core
             GameObject go = Instantiate(arrowPrefab);
             ArrowUnit unit = go.GetComponent<ArrowUnit>();
             if (unit == null) unit = go.AddComponent<ArrowUnit>();
-            
+
             // Assign Selected Theme
             if (ThemeManager.Instance != null)
             {
                 unit.currentTheme = ThemeManager.Instance.GetSelectedTheme();
             }
-            
+
             unit.Initialize(def.occupiedPositions, def.arrowColor, gridSystem);
             unit.OnArrowMoved += OnArrowMoved;
             activeArrows.Add(unit);
@@ -236,7 +253,7 @@ namespace Core
                     heartsRemaining--;
                     UIManager.Instance?.UpdateHeartsUI(heartsRemaining);
                     Debug.Log($"Wrong Move! Hearts remaining: {heartsRemaining}");
-                    
+
                     if (heartsRemaining <= 0)
                     {
                         // Direct lose screen without waiting for other arrows
@@ -266,7 +283,7 @@ namespace Core
                 {
                     camController.ResetCamera(defaultCameraPos, defaultCameraSize, 0.5f);
                 }
-                
+
                 // Trigger Win Sequence
                 if (gridCelebration != null)
                 {
@@ -309,11 +326,11 @@ namespace Core
         {
             IsGameActive = false;
             Debug.Log("Level Won! Showing UI.");
-            
+
             // Coins are now awarded in UIManager when player clicks Next
-            
+
             // Save progress for next level
-            SaveProgress(currentLevelIndex + 1); 
+            SaveProgress(currentLevelIndex + 1);
 
             VFXManager.Instance?.PlayWinEffect();
             UIManager.Instance?.ShowWinUI(currentLevelIndex + 1);
@@ -384,7 +401,7 @@ namespace Core
                 StopCoroutine(hintCoroutine);
                 hintCoroutine = null;
             }
-            
+
             hintCoroutine = StartCoroutine(ShowLegalMovesRoutine());
         }
 
@@ -420,11 +437,11 @@ namespace Core
 
         private void LoadData()
         {
-            currentLevelIndex = PlayerPrefs.GetInt(PREF_LEVEL_INDEX, 0);
+            // currentLevelIndex = PlayerPrefs.GetInt(PREF_LEVEL_INDEX, 0);
             currentLevelIndex = PlayerPrefs.GetInt(PREF_LEVEL_INDEX, 0);
             GridPowerUps = PlayerPrefs.GetInt(PREF_GRID_POWERUPS, 1); // Default 1 free
             HintPowerUps = PlayerPrefs.GetInt(PREF_HINT_POWERUPS, 1); // Default 1 free
-            
+
             // Validate index
             if (currentLevelIndex >= levels.Count && levels.Count > 0)
                 currentLevelIndex = 0; // Reset if out of bounds (e.g. new levels removed)
@@ -439,7 +456,7 @@ namespace Core
             }
             SavePowerUps();
         }
-        
+
         private void SavePowerUps()
         {
             PlayerPrefs.SetInt(PREF_GRID_POWERUPS, GridPowerUps);
@@ -460,11 +477,11 @@ namespace Core
             SavePowerUps();
             UIManager.Instance?.UpdatePowerUps(GridPowerUps, HintPowerUps);
         }
-        
+
         public bool TryUseGridPowerUp()
         {
             if (GridUnlockedForLevel) return true;
-            
+
             if (GridPowerUps > 0)
             {
                 GridPowerUps--;
@@ -499,10 +516,10 @@ namespace Core
             PlayerPrefs.DeleteKey(PREF_HINT_POWERUPS);
             PlayerPrefs.Save();
             Debug.Log("Player progress reset!");
-            
+
             // Reset Themes
             ThemeManager.Instance?.ResetThemes();
-            
+
             // If game is running, update state
             if (Application.isPlaying)
             {

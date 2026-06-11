@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using Core;
+using System;
 
 namespace UI
 {
@@ -12,8 +13,12 @@ namespace UI
         public Transform contentContainer;
         public GameObject shopItemPrefab;
         public Button closeButton;
+        public Button playButton;
 
         private List<ShopItemUI> instantiatedItems = new List<ShopItemUI>();
+
+        private GameObject activeWhenPanelClose;
+        private bool isNeedToActive;
 
         void Start()
         {
@@ -21,7 +26,11 @@ namespace UI
             {
                 closeButton.onClick.AddListener(Hide);
             }
-            
+            if (playButton != null)
+            {
+                playButton.onClick.AddListener(OnClickPlay);
+            }
+
             // Listen for theme changes to update UI if open
             if (ThemeManager.Instance != null)
             {
@@ -29,14 +38,30 @@ namespace UI
             }
         }
 
+        private void OnClickPlay()
+        {
+            if (activeWhenPanelClose != null)
+            {
+                if (activeWhenPanelClose.activeSelf)
+                {
+                    activeWhenPanelClose.SetActive(false);
+                }
+                activeWhenPanelClose = null;
+            }
+
+            Hide();
+            LevelManager.Instance.LoadAndStart();
+        }
+
         private bool wasWinPanelActive = false;
 
+        [EasyButtons.Button]
         public void Show()
         {
             if (UIManager.Instance != null && UIManager.Instance.IsSequenceRunning) return;
 
             if (shopPanel != null) shopPanel.SetActive(true);
-            
+
             // Check if Win Panel is active and hide it
             if (UIManager.Instance != null && UIManager.Instance.winPanel != null)
             {
@@ -46,13 +71,27 @@ namespace UI
                     UIManager.Instance.winPanel.SetActive(false);
                 }
             }
-            
+
             PopulateShop();
         }
 
+        public void Show(GameObject hideObj, bool isNeedToHide)
+        {
+            activeWhenPanelClose = hideObj;
+            isNeedToActive = isNeedToHide;
+            Show();
+        }
         public void Hide()
         {
             if (shopPanel != null) shopPanel.SetActive(false);
+
+            if (activeWhenPanelClose != null)
+            {
+                activeWhenPanelClose.SetActive(true);
+                activeWhenPanelClose = null;
+            }
+
+
             AudioManager.Instance?.PlayButtonSound();
 
             // Restore Win Panel if it was active
@@ -60,7 +99,7 @@ namespace UI
             {
                 UIManager.Instance.winPanel.SetActive(true);
             }
-            wasWinPanelActive = false; 
+            wasWinPanelActive = false;
         }
 
         public void Toggle()
@@ -101,7 +140,7 @@ namespace UI
             {
                 item.RefreshState();
             }
-            
+
         }
     }
 }

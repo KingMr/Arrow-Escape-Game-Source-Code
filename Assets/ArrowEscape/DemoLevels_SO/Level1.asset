@@ -12,9 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aa460caee5b1744393d466c008f7355, type: 3}
   m_Name: Level1
   m_EditorClassIdentifier: 
-  winMode: 1
   gridDimensions: {x: 5, y: 5}
+  defaultCameraSize: 18
+  minZoom: 10
+  maxZoom: 20
   maxMoves: 6
+  gameWinMode: 1
   arrows:
   - occupiedPositions:
     - {x: 2, y: 4}
