@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: Level21
   m_EditorClassIdentifier: 
   gridDimensions: {x: 11, y: 21}
+  defaultCameraSize: 18
+  minZoom: 0
+  maxZoom: 0
   maxMoves: 28
-  gameWinMode: 0
+  gameWinMode: 1
   arrows:
   - occupiedPositions:
     - {x: 5, y: 20}

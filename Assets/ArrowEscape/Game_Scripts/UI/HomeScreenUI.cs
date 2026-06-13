@@ -10,6 +10,8 @@ public class HomeScreenUI : MonoBehaviour
     [Header("Scripts")]
     [SerializeField]
     private ShopUI shopUI;
+    [SerializeField]
+    private SettingScreenUI settingScreenUI;
 
 
     [Header("Variables")]
@@ -33,10 +35,13 @@ public class HomeScreenUI : MonoBehaviour
 
     private void OnClickSetting()
     {
+        AudioManager.Instance?.PlayButtonSound();
+        settingScreenUI.Show();
     }
 
     private void OnClickShop()
     {
+        AudioManager.Instance?.PlayButtonSound();
         gameObject.SetActive(false);
         shopUI.Show(gameObject, true);
     }
@@ -44,6 +49,7 @@ public class HomeScreenUI : MonoBehaviour
     private void OnClickPlay()
     {
         Hide();
+        AudioManager.Instance?.PlayButtonSound();
         LevelManager.Instance.LoadAndStart();
     }
 

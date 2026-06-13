@@ -252,6 +252,7 @@ namespace Core
                 {
                     heartsRemaining--;
                     UIManager.Instance?.UpdateHeartsUI(heartsRemaining);
+                    UIManager.Instance.alertBorderImage.StartBlinking();
                     Debug.Log($"Wrong Move! Hearts remaining: {heartsRemaining}");
 
                     if (heartsRemaining <= 0)

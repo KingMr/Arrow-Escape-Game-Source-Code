@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Core
@@ -19,6 +20,9 @@ namespace Core
         [Header("Settings")]
         [Range(0f, 1f)] public float volume = 1f;
 
+        private bool isSoundOn = true;
+        private bool isVibration = true;
+
         private AudioSource audioSource;
 
         private void Awake()
@@ -33,6 +37,21 @@ namespace Core
             {
                 Destroy(gameObject);
             }
+        }
+        void Start()
+        {
+            SettingScreenUI.OnVibrationUpDate += OnVibration;
+            SettingScreenUI.OnSoundUpdate += OnSound;
+        }
+
+        private void OnSound(bool obj)
+        {
+            isSoundOn = obj;
+        }
+
+        private void OnVibration(bool obj)
+        {
+            isVibration = obj;
         }
 
         public void PlayMoveSound()
@@ -77,6 +96,7 @@ namespace Core
 
         private void PlaySound(AudioClip clip)
         {
+            if (!isSoundOn) return;
             if (clip != null && audioSource != null)
             {
                 audioSource.PlayOneShot(clip, volume);

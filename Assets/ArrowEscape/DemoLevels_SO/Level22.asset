@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: Level22
   m_EditorClassIdentifier: Assembly-CSharp::Data.LevelData
   gridDimensions: {x: 5, y: 5}
+  defaultCameraSize: 18
+  minZoom: 0
+  maxZoom: 0
   maxMoves: 0
   gameWinMode: 1
   arrows:

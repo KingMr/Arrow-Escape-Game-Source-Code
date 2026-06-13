@@ -22,6 +22,7 @@ namespace Core
         public Transform coinIconTransform; // Target for coin animation
         public Button homeButton;
         public Button retryButton;
+        public ImageBlink alertBorderImage;
 
         [Header("Hearts UI")]
         public GameObject heartUIObj;
@@ -142,11 +143,13 @@ namespace Core
 
         private void OnClickRetry()
         {
+            AudioManager.Instance?.PlayButtonSound();
             LevelManager.Instance.LoadAndStart();
         }
 
         private void OnClickHome()
         {
+            AudioManager.Instance?.PlayButtonSound();
             LevelManager.Instance.ClearLevel();
             homeScreenUI.Show();
         }
