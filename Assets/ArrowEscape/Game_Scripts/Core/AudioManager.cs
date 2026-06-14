@@ -1,4 +1,5 @@
 using System;
+using Solo.MOST_IN_ONE;
 using UnityEngine;
 
 namespace Core
@@ -101,6 +102,25 @@ namespace Core
             {
                 audioSource.PlayOneShot(clip, volume);
             }
+        }
+
+        public void PlaySuccessHaptic()
+        {
+            PlayHaptic(MOST_HapticFeedback.HapticTypes.Success);
+        }
+        public void PlayWarningHaptic()
+        {
+            PlayHaptic(MOST_HapticFeedback.HapticTypes.Warning);
+        }
+        public void PlayLightImpactHaptic()
+        {
+            PlayHaptic(MOST_HapticFeedback.HapticTypes.LightImpact);
+        }
+
+        private void PlayHaptic(MOST_HapticFeedback.HapticTypes hapticTypes = MOST_HapticFeedback.HapticTypes.LightImpact)
+        {
+            if (!isVibration) return;
+            MOST_HapticFeedback.Generate(hapticTypes);
         }
     }
 }

@@ -27,12 +27,14 @@ public class SettingScreenUI : MonoBehaviour
     private void OnCloseClick()
     {
         AudioManager.Instance?.PlayButtonSound();
+        AudioManager.Instance?.PlayLightImpactHaptic();
         Hide();
     }
 
     private void OnVibrationChanged(bool arg0)
     {
         AudioManager.Instance?.PlayButtonSound();
+        AudioManager.Instance?.PlayLightImpactHaptic();
         isVibrationOn = arg0;
         OnVibrationUpDate?.Invoke(arg0);
     }
@@ -40,6 +42,7 @@ public class SettingScreenUI : MonoBehaviour
     private void OnSoundValueChanged(bool arg0)
     {
         AudioManager.Instance?.PlayButtonSound();
+        AudioManager.Instance?.PlayLightImpactHaptic();
         isSoundOn = arg0;
         OnSoundUpdate?.Invoke(arg0);
     }

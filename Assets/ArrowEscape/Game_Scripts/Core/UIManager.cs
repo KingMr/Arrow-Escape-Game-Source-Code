@@ -144,12 +144,14 @@ namespace Core
         private void OnClickRetry()
         {
             AudioManager.Instance?.PlayButtonSound();
+            AudioManager.Instance?.PlayLightImpactHaptic();
             LevelManager.Instance.LoadAndStart();
         }
 
         private void OnClickHome()
         {
             AudioManager.Instance?.PlayButtonSound();
+            AudioManager.Instance?.PlayLightImpactHaptic();
             LevelManager.Instance.ClearLevel();
             homeScreenUI.Show();
         }

@@ -36,18 +36,21 @@ public class HomeScreenUI : MonoBehaviour
     private void OnClickSetting()
     {
         AudioManager.Instance?.PlayButtonSound();
+        AudioManager.Instance?.PlayLightImpactHaptic();
         settingScreenUI.Show();
     }
 
     private void OnClickShop()
     {
         AudioManager.Instance?.PlayButtonSound();
+        AudioManager.Instance?.PlayLightImpactHaptic();
         gameObject.SetActive(false);
         shopUI.Show(gameObject, true);
     }
 
     private void OnClickPlay()
     {
+        AudioManager.Instance?.PlayLightImpactHaptic();
         Hide();
         AudioManager.Instance?.PlayButtonSound();
         LevelManager.Instance.LoadAndStart();
