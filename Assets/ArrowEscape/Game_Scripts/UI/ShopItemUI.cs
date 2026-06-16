@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Core;
+using AdMobWrapper;
+using System;
 
 namespace UI
 {
@@ -14,6 +16,10 @@ namespace UI
         public Button actionButton;
         public TextMeshProUGUI actionButtonText;
         public GameObject selectedIndicator; // e.g. a checkmark or "Selected" text overlay
+        public GameObject rvObj;
+        public TextMeshProUGUI rvCountText;
+        public Button rvButton;
+        public GameObject buttonCoinImageObj; //action button coin image
 
         private ArrowTheme myTheme;
         private ShopUI shopUI;
@@ -25,30 +31,68 @@ namespace UI
 
             if (iconImage != null) iconImage.sprite = theme.icon;
             if (nameText != null) nameText.text = theme.themeName;
-            
+
+            myTheme.watchedRV = PlayerPrefs.GetInt($"{myTheme.id}_watched_rv", 0);
+
             RefreshState();
-            
+
             actionButton.onClick.RemoveAllListeners();
             actionButton.onClick.AddListener(OnActionButtonClicked);
+
+            rvButton.onClick.RemoveAllListeners();
+            rvButton.onClick.AddListener(OnClickRVButton);
+        }
+
+        private void OnClickRVButton()
+        {
+            if (!AdMobManager.Instance.IsRewardedReady(AdMobConstants.SHOP_KEY))
+            {
+                AdMobManager.Instance.LoadRewarded(AdMobConstants.SHOP_KEY);
+                ShowRewarded(AdMobConstants.DEFAULT);
+            }
+            else
+            {
+                ShowRewarded(AdMobConstants.SHOP_KEY);
+            }
+
+
+            void ShowRewarded(string key)
+            {
+                AdMobManager.Instance.ShowRewarded(key, (reward) =>
+                {
+                    myTheme.watchedRV += 1;
+                    PlayerPrefs.SetInt($"{myTheme.id}_watched_rv", myTheme.watchedRV);
+
+                    if (myTheme.CheckAllRVWatched())
+                    {
+                        UnlockAndSelect();
+                    }
+                    else
+                    {
+                        RefreshState();
+                    }
+                });
+            }
+
         }
 
         void Update()
         {
             if (myTheme == null) return;
-            
+
             // If locked:
             // - If Ads Enabled: Check Ad Ready
             // - If Ads Disabled: Check Coin Balance
             if (!ThemeManager.Instance.IsThemeUnlocked(myTheme.id))
             {
-                bool useAds = AdsManager.Instance != null && AdsManager.Instance.enableAds;
-                
-                if (useAds)
-                {
-                    bool adReady = AdsManager.Instance != null && AdsManager.Instance.IsRewardedAdReady();
-                    if (actionButton != null) actionButton.interactable = adReady;
-                }
-                else
+                bool useAds = AdMobManager.Instance != null && AdMobManager.Instance.enableAds;
+
+                // if (useAds)
+                // {
+                //     bool adReady = AdMobManager.Instance.IsRewardedReady();
+                //     if (actionButton != null) actionButton.interactable = adReady;
+                // }
+                // else
                 {
                     // Use Coins
                     int price = myTheme.price > 0 ? myTheme.price : 500; // Default price if not set
@@ -69,6 +113,9 @@ namespace UI
 
             if (isSelected)
             {
+                rvObj.SetActive(false);
+                actionButton.gameObject.SetActive(false);
+
                 // Already selected
                 if (actionButtonText != null) actionButtonText.text = "Selected";
                 actionButton.interactable = false;
@@ -76,6 +123,8 @@ namespace UI
             }
             else if (isUnlocked)
             {
+                rvObj.SetActive(false);
+                buttonCoinImageObj.SetActive(false);
                 // Unlocked but not selected
                 if (actionButtonText != null) actionButtonText.text = "Select";
                 actionButton.interactable = true;
@@ -83,16 +132,19 @@ namespace UI
             }
             else
             {
-                // Locked, need to buy
-                bool useAds = AdsManager.Instance != null && AdsManager.Instance.enableAds;
-                
-                if (useAds)
+
+                rvObj.SetActive(myTheme.canPurchaseUsingRV);
+                actionButton.gameObject.SetActive(true);
+                buttonCoinImageObj.SetActive(true);
+
+                if (myTheme.canPurchaseUsingRV)
                 {
-                    if (actionButtonText != null) actionButtonText.text = "Watch Ad";
-                    if (priceText != null) priceText.text = "Free";
+
+                    // if (actionButtonText != null) actionButtonText.text = "Watch Ad";
+                    if (rvCountText != null) rvCountText.text = $"{myTheme.watchedRV}/{myTheme.needToWatchRV}";
                     // Interactable handled in Update()
                 }
-                else
+
                 {
                     int price = myTheme.price > 0 ? myTheme.price : 500;
                     if (actionButtonText != null) actionButtonText.text = "Buy";
@@ -118,20 +170,18 @@ namespace UI
             else
             {
                 // Unlock Logic
-                bool useAds = AdsManager.Instance != null && AdsManager.Instance.enableAds;
+                // bool useAds = AdMobManager.Instance != null && AdMobManager.Instance.enableAds;
 
-                if (useAds)
-                {
-                    // Try to unlock via Ad
-                    AdsManager.Instance?.ShowRewardedAd(() => {
-                        UnlockAndSelect();
-                        Debug.Log($"Theme {myTheme.id} unlocked via Ad!");
-                    }, () => {
-                        Debug.Log("Ad failed or cancelled.");
-                        AudioManager.Instance?.PlayBlockedSound();
-                    });
-                }
-                else
+                // if (useAds)
+                // {
+                //     // Try to unlock via Ad
+                //     AdMobManager.Instance.ShowRewarded(AdMobConstants.DEFAULT, (reward) =>
+                //     {
+                //         UnlockAndSelect();
+                //         Debug.Log($"Theme {myTheme.id} unlocked via Ad!");
+                //     });
+                // }
+                // else
                 {
                     // Try to unlock via Coins
                     int price = myTheme.price > 0 ? myTheme.price : 500;
@@ -156,7 +206,7 @@ namespace UI
             // The previous code REFRESHED, so it would show as "Select". 
             // Let's just Unlock it for now, user can then click Select.
             shopUI.RefreshAllItems();
-            AudioManager.Instance?.PlayCoinSpendSound(); 
+            AudioManager.Instance?.PlayCoinSpendSound();
         }
     }
 }

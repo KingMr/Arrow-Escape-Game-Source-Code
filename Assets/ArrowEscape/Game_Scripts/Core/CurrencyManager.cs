@@ -65,12 +65,18 @@ namespace Core
             PlayerPrefs.Save();
         }
 
+        public int GetCurrentCoin()
+        {
+            LoadCoins();
+            return Coins;
+        }
+
         [ContextMenu("Add 500 Coins")]
         public void DebugAddCoins()
         {
             AddCoins(500);
         }
-        
+
         [ContextMenu("Reset Coins")]
         public void DebugResetCoins()
         {

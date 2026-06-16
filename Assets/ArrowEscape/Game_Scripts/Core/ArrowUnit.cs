@@ -292,12 +292,14 @@ namespace Core
                     // Hide visual if it was shown
                     if (longPressTriggered)
                     {
+                        AudioManager.Instance.PlayLightImpactHaptic();
                         GridVisualizer.Instance?.HidePreviewLine();
                     }
 
                     // If it was NOT a long press, AND we are still over the arrow, Trigger Move
                     if (!longPressTriggered && isMouseOver)
                     {
+                        AudioManager.Instance.PlayLightImpactHaptic();
                         AttemptMove();
                     }
                 }

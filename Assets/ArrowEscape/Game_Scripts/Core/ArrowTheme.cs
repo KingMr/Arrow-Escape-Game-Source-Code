@@ -16,7 +16,7 @@ namespace Core
         [Tooltip("Width of the line at the start (Head).")]
         public float width;
         [Tooltip("Width of the line at the end (Tail). If negative, uses start width.")]
-        public float endWidth; 
+        public float endWidth;
         [Tooltip("Material for the line renderer.")]
         public Material material;
         [Tooltip("Color of the line. If useArrowColor is true, this multiplies with the arrow's color.")]
@@ -42,16 +42,19 @@ namespace Core
         public string id;
         public string themeName;
         public int price;
+        public bool canPurchaseUsingRV;
+        public int needToWatchRV;
+        [HideInInspector] public int watchedRV;
         public Sprite icon;
         public bool isUnlockedByDefault;
 
         [Header("General Settings")]
         public ArrowVisualType visualType = ArrowVisualType.LineRenderer;
-        
+
         [Header("Head Settings")]
         [Tooltip("Optional: Assign a Prefab to use as the head. Overrides Sprite settings if assigned.")]
         public GameObject headPrefab;
-        
+
         [Tooltip("Sprite for the arrow head (used if no Prefab assigned).")]
         public Sprite headSprite;
         [Tooltip("Scale of the head.")]
@@ -60,7 +63,7 @@ namespace Core
         public float headRotationOffset = 0f;
         [Tooltip("Sorting Order for the head.")]
         public int headSortingOrder = 2;
-        
+
         [Header("Head Outline (Sprite Only)")]
         public bool showHeadOutline = false;
         public Color headOutlineColor = Color.black;
@@ -83,5 +86,11 @@ namespace Core
         public float bodyScale = 1.0f;
         [Tooltip("If true, rotates body sprites to follow the path direction.")]
         public bool rotateBodySprites = false;
+
+
+        public bool CheckAllRVWatched()
+        {
+            return (watchedRV >= needToWatchRV);
+        }
     }
 }

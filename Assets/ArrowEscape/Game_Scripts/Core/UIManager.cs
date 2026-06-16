@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using System;
+using AdMobWrapper;
 
 namespace Core
 {
@@ -409,21 +410,20 @@ namespace Core
             if (LevelManager.Instance == null || isSequenceRunning) return;
 
             // Check Ads or Coins
-            if (AdsManager.Instance != null && AdsManager.Instance.enableAds)
+            if (AdMobManager.Instance != null && AdMobManager.Instance.enableAds)
             {
                 isSequenceRunning = true;
                 if (shopButton != null) shopButton.interactable = false;
-
-                AdsManager.Instance.ShowRewardedAd(() =>
+                AdMobManager.Instance.ShowRewarded(AdMobConstants.DEFAULT, (reward) =>
                 {
                     LevelManager.Instance.LoadNextLevel();
-                    Debug.Log("Ad watched! Level skipped.");
-                }, () =>
-                {
-                    isSequenceRunning = false;
-                    if (shopButton != null) shopButton.interactable = true;
-                    Debug.Log("Ad failed or cancelled.");
                 });
+
+                //                 AdMobManager.Instance.ShowRewarded(AdMobConstants.DEFAULT, (reward) =>
+                // {
+                //     LevelManager.Instance.LoadNextLevel();
+                //     Debug.Log("Ad watched! Level skipped.");
+                // });
             }
             else
             {
@@ -501,7 +501,7 @@ namespace Core
             var wait = new WaitForSeconds(1.0f);
             while (true)
             {
-                bool adReady = AdsManager.Instance != null && AdsManager.Instance.IsRewardedAdReady();
+                bool adReady = AdMobManager.Instance != null && AdMobManager.Instance.IsRewardedReady();
                 bool canInteract = !isSequenceRunning;
 
                 // Update Shop Button
@@ -517,7 +517,7 @@ namespace Core
                     {
                         // Enable if we have powerups OR if we can buy with coins OR if ads are available
                         bool hasCoins = CurrencyManager.Instance != null && CurrencyManager.Instance.Coins >= 100;
-                        bool hasAds = AdsManager.Instance != null && AdsManager.Instance.enableAds && adReady;
+                        bool hasAds = AdMobManager.Instance != null && AdMobManager.Instance.enableAds && adReady;
                         bool canBuy = hasCoins || hasAds;
 
                         bool canUseGrid = LevelManager.Instance.GridPowerUps > 0 || canBuy;
@@ -528,7 +528,7 @@ namespace Core
                     if (legalMovesButton != null)
                     {
                         bool hasCoins = CurrencyManager.Instance != null && CurrencyManager.Instance.Coins >= 100;
-                        bool hasAds = AdsManager.Instance != null && AdsManager.Instance.enableAds && adReady;
+                        bool hasAds = AdMobManager.Instance != null && AdMobManager.Instance.enableAds && adReady;
                         bool canBuy = hasCoins || hasAds;
 
                         bool canUseHint = LevelManager.Instance.HintPowerUps > 0 || canBuy;
@@ -538,7 +538,7 @@ namespace Core
                     // Skip Level Button
                     if (skipLevelButton != null)
                     {
-                        if (AdsManager.Instance != null && !AdsManager.Instance.enableAds)
+                        if (AdMobManager.Instance != null && !AdMobManager.Instance.enableAds)
                         {
                             skipLevelButton.interactable = canInteract && CurrencyManager.Instance != null && CurrencyManager.Instance.Coins >= 200;
                         }

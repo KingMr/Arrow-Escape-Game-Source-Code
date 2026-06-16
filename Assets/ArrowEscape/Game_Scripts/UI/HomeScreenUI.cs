@@ -1,4 +1,5 @@
 using System;
+using AdMobWrapper;
 using Core;
 using TMPro;
 using UI;
@@ -31,6 +32,14 @@ public class HomeScreenUI : MonoBehaviour
         settingButton.onClick.AddListener(OnClickSetting);
 
         levelText.text = $"{LevelManager.Instance.currentLevelIndex + 1}";
+
+        CurrencyManager.Instance.OnCoinsChanged += OnCoinChanged;
+        currencyText.text = $"{CurrencyManager.Instance.GetCurrentCoin()}";
+    }
+
+    private void OnCoinChanged(int coinCurrentAmount)
+    {
+        currencyText.text = $"{coinCurrentAmount}";
     }
 
     private void OnClickSetting()
@@ -60,6 +69,8 @@ public class HomeScreenUI : MonoBehaviour
     {
         gameObject.SetActive(true);
         levelText.text = $"{LevelManager.Instance.currentLevelIndex + 1}";
+
+        AdMobManager.Instance.ShowBanner();
     }
     public void Hide()
     {
