@@ -18,17 +18,17 @@ namespace Core
         [Header("Celebration Settings")]
         [Tooltip("Maximum scale multiplier during zoom")]
         public float maxScale = 1.5f;
-        
+
         [Tooltip("Maximum opacity during celebration (0-1)")]
         [Range(0f, 1f)]
         public float celebrationAlpha = 1f;
 
         [Tooltip("Duration of the zoom up + fade in (seconds)")]
         public float zoomUpDuration = 0.3f;
-        
+
         [Tooltip("Duration of the zoom down + fade out (seconds)")]
         public float zoomDownDuration = 0.3f;
-        
+
         [Tooltip("Optional delay before starting the animation")]
         public float startDelay = 0.1f;
 
@@ -66,10 +66,10 @@ namespace Core
         {
             // Wait a frame to ensure dots are spawned
             yield return null;
-            
+
             dotRenderers = GetComponentsInChildren<SpriteRenderer>();
             SyncDotColors(); // Initial sync
-            
+
             foreach (var renderer in dotRenderers)
             {
                 if (renderer != null)
@@ -97,7 +97,7 @@ namespace Core
 
             // Refresh renderers in case dots were just created
             dotRenderers = GetComponentsInChildren<SpriteRenderer>();
-            
+
             // Store original scales
             Vector3[] originalScales = new Vector3[dotRenderers.Length];
             for (int i = 0; i < dotRenderers.Length; i++)
@@ -107,6 +107,7 @@ namespace Core
             }
 
             AudioManager.Instance?.PlayWinSound();
+            VFXManager.Instance?.PlayWinEffect();
 
             // ZOOM UP + FADE IN
             float elapsed = 0f;
@@ -114,14 +115,14 @@ namespace Core
             {
                 float t = elapsed / zoomUpDuration;
                 float easedT = EaseOutQuad(t); // Smooth easing
-                
+
                 for (int i = 0; i < dotRenderers.Length; i++)
                 {
                     if (dotRenderers[i] != null)
                     {
                         // Scale up
                         dotRenderers[i].transform.localScale = Vector3.Lerp(originalScales[i], originalScales[i] * maxScale, easedT);
-                        
+
                         // Fade in logic is now handled in Update for color, 
                         // but we need to update alpha here for animation.
                         Color c = dotRenderers[i].color;
@@ -129,7 +130,7 @@ namespace Core
                         dotRenderers[i].color = c;
                     }
                 }
-                
+
                 elapsed += Time.deltaTime;
                 yield return null;
             }
@@ -152,21 +153,21 @@ namespace Core
             {
                 float t = elapsed / zoomDownDuration;
                 float easedT = EaseInQuad(t); // Smooth easing
-                
+
                 for (int i = 0; i < dotRenderers.Length; i++)
                 {
                     if (dotRenderers[i] != null)
                     {
                         // Scale down
                         dotRenderers[i].transform.localScale = Vector3.Lerp(originalScales[i] * maxScale, originalScales[i], easedT);
-                        
+
                         // Fade back to normal
                         Color c = dotRenderers[i].color;
                         c.a = Mathf.Lerp(celebrationAlpha, normalAlpha, easedT);
                         dotRenderers[i].color = c;
                     }
                 }
-                
+
                 elapsed += Time.deltaTime;
                 yield return null;
             }

@@ -305,16 +305,17 @@ namespace Core
             AudioManager.Instance?.PlayButtonSound();
 
             // Award coins and play animation locally
-            int rewardAmount = 500;
+            int rewardAmount = 50;
             if (CurrencyManager.Instance != null)
             {
                 CurrencyManager.Instance.AddCoins(rewardAmount);
                 // Trigger Animation from center of screen by default
-                CoinFeedbackManager.Instance?.PlayCoinAnimation(Vector3.zero);
+                // CoinFeedbackManager.Instance?.PlayCoinAnimation(Vector3.zero);
             }
 
             // Wait for animation to finish (approx 1.5s)
-            yield return new WaitForSeconds(1.5f);
+            // yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(0.1f);
 
             HideAll();
             LevelManager.Instance?.LoadNextLevel();

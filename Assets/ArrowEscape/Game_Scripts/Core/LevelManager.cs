@@ -265,6 +265,11 @@ namespace Core
                 }
             }
 
+            if (GridUnlockedForLevel)
+            {
+                GridUnlockedForLevel = false;
+                Debugging.GridVisualizer.Instance?.ToggleVisualizer();
+            }
             // Cancel any previous checks and start a fresh repeated check
             CancelInvoke(nameof(CheckGameState));
             InvokeRepeating(nameof(CheckGameState), 0.5f, 0.5f);
@@ -333,7 +338,7 @@ namespace Core
             // Save progress for next level
             SaveProgress(currentLevelIndex + 1);
 
-            VFXManager.Instance?.PlayWinEffect();
+            // VFXManager.Instance?.PlayWinEffect();
             UIManager.Instance?.ShowWinUI(currentLevelIndex + 1);
         }
 
