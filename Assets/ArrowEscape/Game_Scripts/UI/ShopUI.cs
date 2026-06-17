@@ -93,6 +93,7 @@ namespace UI
 
 
             AudioManager.Instance?.PlayButtonSound();
+            AudioManager.Instance?.PlayLightImpactHaptic();
 
             // Restore Win Panel if it was active
             if (wasWinPanelActive && UIManager.Instance != null && UIManager.Instance.winPanel != null)

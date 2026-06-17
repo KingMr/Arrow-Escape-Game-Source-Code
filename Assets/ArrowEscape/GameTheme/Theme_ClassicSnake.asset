@@ -15,6 +15,9 @@ MonoBehaviour:
   id: 3
   themeName: SNAKE
   price: 10
+  canPurchaseUsingRV: 1
+  needToWatchRV: 5
+  watchedRV: 0
   icon: {fileID: 21300000, guid: 3e9ae09321c35054a891a282f1fc8d95, type: 3}
   isUnlockedByDefault: 0
   visualType: 0

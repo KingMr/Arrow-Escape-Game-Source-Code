@@ -15,6 +15,9 @@ MonoBehaviour:
   id: 6
   themeName: SNAKE-B
   price: 800
+  canPurchaseUsingRV: 1
+  needToWatchRV: 5
+  watchedRV: 0
   icon: {fileID: 21300000, guid: 107a2a87e60ccd442ab49ea3362dc33a, type: 3}
   isUnlockedByDefault: 0
   visualType: 0

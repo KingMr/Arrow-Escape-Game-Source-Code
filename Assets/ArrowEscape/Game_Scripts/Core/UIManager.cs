@@ -292,6 +292,7 @@ namespace Core
         {
             if (isSequenceRunning) return;
             if (shopButton != null) shopButton.interactable = false;
+            AudioManager.Instance.PlayLightImpactHaptic();
             StartCoroutine(NextLevelSequence());
         }
 
