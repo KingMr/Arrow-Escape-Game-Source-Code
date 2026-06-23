@@ -11,7 +11,9 @@ namespace Data
         public float defaultCameraSize = 13;
         public float minZoom;
         public float maxZoom;
+        public int gameWinAmount;
         public int maxMoves = 10; // Maximum moves allowed to complete this level
+        public int seconds; //Timer for complete Level
         public GameWinMode gameWinMode;
         public List<ArrowDefinition> arrows = new List<ArrowDefinition>();
     }

@@ -24,7 +24,7 @@ namespace Debugging
 
             poolContainer = new GameObject("VisualizerLinePool");
             poolContainer.transform.SetParent(transform);
-            
+
             // Create the preview line
             GameObject previewGo = new GameObject("PreviewLine");
             previewGo.transform.SetParent(transform);
@@ -124,12 +124,12 @@ namespace Debugging
 
             Vector2Int headPos = arrow.currentPositions[0];
             Vector2Int direction = GetArrowDirection(arrow);
-            
+
             // Start from head
             Vector3 start = new Vector3(headPos.x, headPos.y, 0);
-            
+
             GridSystem grid = LevelManager.Instance.GridSystem;
-            
+
             // Calculate distance to edge
             int dist = 0;
             if (direction.x > 0) dist = grid.Width - 1 - headPos.x;
@@ -139,9 +139,9 @@ namespace Debugging
 
             // Draw line to the edge of the grid
             Vector3 end = start + (Vector3)(Vector2)direction * dist;
-            
+
             // Extend significantly to go beyond the grid as requested
-            end += (Vector3)(Vector2)direction * 10f; 
+            end += (Vector3)(Vector2)direction * 10f;
 
             lr.SetPosition(0, start);
             lr.SetPosition(1, end);

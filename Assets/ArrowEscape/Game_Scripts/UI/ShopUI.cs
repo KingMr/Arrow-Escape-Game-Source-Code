@@ -8,6 +8,10 @@ namespace UI
 {
     public class ShopUI : MonoBehaviour
     {
+        [Header("Scripts")]
+        public NotEnoughCoinScreenUI notEnoughCoinScreenUI;
+
+
         [Header("References")]
         public GameObject shopPanel;
         public Transform contentContainer;
@@ -61,6 +65,7 @@ namespace UI
             if (UIManager.Instance != null && UIManager.Instance.IsSequenceRunning) return;
 
             if (shopPanel != null) shopPanel.SetActive(true);
+            UIManager.Instance?.CoinCountSetActive(true);
 
             // Check if Win Panel is active and hide it
             if (UIManager.Instance != null && UIManager.Instance.winPanel != null)

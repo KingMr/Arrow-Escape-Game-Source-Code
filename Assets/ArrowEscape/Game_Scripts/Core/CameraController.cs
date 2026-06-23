@@ -12,6 +12,8 @@ namespace Core
         [Header("Pan Settings")]
         public float panSpeed = 1f;
 
+        public Camera UICamera;
+
         private Vector3 lastMousePosition;
         private bool isDragging = false;
         private Camera cam;
@@ -130,12 +132,14 @@ namespace Core
                     if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()) return;
 
                     // Check for touch UI interaction
-                    if (Input.touchCount > 0 && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
-                        return;
+                if (Input.touchCount > 0 && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
+                    return;
                 }
 
                 lastMousePosition = Input.mousePosition;
                 isDragging = true;
+
+
             }
 
             if (Input.GetMouseButtonUp(0))

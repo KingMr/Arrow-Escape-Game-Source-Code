@@ -625,7 +625,7 @@ namespace Core
             // Using 0.6f factor provides a safety margin so InnerRadius > 0.
             float cornerRadius = Mathf.Clamp(Mathf.Max(0.35f, maxWidth * 0.6f), 0.35f, 0.5f);
             cornerRadius = 0.2f;
-            Debug.Log($"Corner Radius - {cornerRadius}");
+            // Debug.Log($"Corner Radius - {cornerRadius}");
 
             // Generate smooth path with interpolated corners
             List<Vector3> smoothPath = GenerateSmoothPath(currentPositions, smoothness, cornerRadius);
@@ -967,8 +967,6 @@ namespace Core
 
         private void OnDestroy()
         {
-            Debug.Log($"Arrow OnDestroy called");
-
             if (gridSystem != null)
             {
                 foreach (var pos in currentPositions)

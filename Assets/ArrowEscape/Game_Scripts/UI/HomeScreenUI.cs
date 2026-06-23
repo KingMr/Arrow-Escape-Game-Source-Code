@@ -68,6 +68,7 @@ public class HomeScreenUI : MonoBehaviour
     public void Show()
     {
         gameObject.SetActive(true);
+        UIManager.Instance?.CoinCountSetActive(false);
         levelText.text = $"{LevelManager.Instance.currentLevelIndex + 1}";
 
         AdMobManager.Instance.ShowBanner();

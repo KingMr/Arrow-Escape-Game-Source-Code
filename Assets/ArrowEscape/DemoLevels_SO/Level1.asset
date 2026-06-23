@@ -16,7 +16,9 @@ MonoBehaviour:
   defaultCameraSize: 18
   minZoom: 10
   maxZoom: 20
+  gameWinAmount: 10
   maxMoves: 6
+  seconds: 20
   gameWinMode: 1
   arrows:
   - occupiedPositions:

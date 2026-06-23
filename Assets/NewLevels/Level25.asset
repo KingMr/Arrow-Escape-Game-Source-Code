@@ -1,0 +1,172 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6aa460caee5b1744393d466c008f7355, type: 3}
+  m_Name: Level25
+  m_EditorClassIdentifier: Assembly-CSharp::Data.LevelData
+  gridDimensions: {x: 10, y: 10}
+  defaultCameraSize: 20
+  minZoom: 5
+  maxZoom: 30
+  gameWinAmount: 10
+  maxMoves: 8
+  gameWinMode: 1
+  arrows:
+  - occupiedPositions:
+    - {x: 3, y: 1}
+    - {x: 3, y: 2}
+    - {x: 3, y: 3}
+    - {x: 3, y: 4}
+    - {x: 3, y: 5}
+    - {x: 3, y: 6}
+    arrowColor: {r: 1, g: 0, b: 0, a: 1}
+  - occupiedPositions:
+    - {x: 8, y: 5}
+    - {x: 7, y: 5}
+    - {x: 6, y: 5}
+    - {x: 5, y: 5}
+    arrowColor: {r: 0.2, g: 1, b: 0, a: 1}
+  - occupiedPositions:
+    - {x: 0, y: 8}
+    - {x: 1, y: 8}
+    - {x: 2, y: 8}
+    - {x: 3, y: 8}
+    - {x: 4, y: 8}
+    arrowColor: {r: 0, g: 0, b: 1, a: 1}
+  - occupiedPositions:
+    - {x: 7, y: 1}
+    - {x: 7, y: 0}
+    - {x: 8, y: 0}
+    - {x: 9, y: 0}
+    arrowColor: {r: 1, g: 0.69, b: 0, a: 1}
+  - occupiedPositions:
+    - {x: 0, y: 7}
+    - {x: 1, y: 7}
+    - {x: 2, y: 7}
+    - {x: 3, y: 7}
+    - {x: 4, y: 7}
+    - {x: 5, y: 7}
+    - {x: 6, y: 7}
+    - {x: 7, y: 7}
+    arrowColor: {r: 0.5, g: 0, b: 1, a: 1}
+  - occupiedPositions:
+    - {x: 0, y: 9}
+    - {x: 1, y: 9}
+    arrowColor: {r: 1, g: 0.5, b: 0, a: 1}
+  - occupiedPositions:
+    - {x: 4, y: 6}
+    - {x: 4, y: 5}
+    arrowColor: {r: 0.3, g: 0.7, b: 1, a: 1}
+  - occupiedPositions:
+    - {x: 0, y: 6}
+    - {x: 0, y: 5}
+    - {x: 1, y: 5}
+    arrowColor: {r: 1, g: 0.3, b: 0.7, a: 1}
+  - occupiedPositions:
+    - {x: 7, y: 9}
+    - {x: 7, y: 8}
+    - {x: 6, y: 8}
+    arrowColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  - occupiedPositions:
+    - {x: 2, y: 5}
+    - {x: 2, y: 6}
+    - {x: 1, y: 6}
+    arrowColor: {r: 1, g: 0.5, b: 0, a: 1}
+  - occupiedPositions:
+    - {x: 0, y: 3}
+    - {x: 0, y: 4}
+    - {x: 1, y: 4}
+    arrowColor: {r: 0.3, g: 0.7, b: 1, a: 1}
+  - occupiedPositions:
+    - {x: 4, y: 9}
+    - {x: 3, y: 9}
+    arrowColor: {r: 1, g: 0.3, b: 0.7, a: 1}
+  - occupiedPositions:
+    - {x: 5, y: 6}
+    - {x: 6, y: 6}
+    arrowColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  - occupiedPositions:
+    - {x: 8, y: 4}
+    - {x: 8, y: 3}
+    - {x: 7, y: 3}
+    arrowColor: {r: 1, g: 0.5, b: 0, a: 1}
+  - occupiedPositions:
+    - {x: 9, y: 9}
+    - {x: 9, y: 8}
+    - {x: 8, y: 8}
+    arrowColor: {r: 0.3, g: 0.7, b: 1, a: 1}
+  - occupiedPositions:
+    - {x: 0, y: 1}
+    - {x: 0, y: 2}
+    - {x: 1, y: 2}
+    arrowColor: {r: 1, g: 0.3, b: 0.7, a: 1}
+  - occupiedPositions:
+    - {x: 9, y: 3}
+    - {x: 9, y: 4}
+    arrowColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  - occupiedPositions:
+    - {x: 5, y: 9}
+    - {x: 5, y: 8}
+    arrowColor: {r: 1, g: 0.5, b: 0, a: 1}
+  - occupiedPositions:
+    - {x: 5, y: 0}
+    - {x: 5, y: 1}
+    - {x: 6, y: 1}
+    arrowColor: {r: 0.3, g: 0.7, b: 1, a: 1}
+  - occupiedPositions:
+    - {x: 5, y: 4}
+    - {x: 5, y: 3}
+    - {x: 4, y: 3}
+    arrowColor: {r: 1, g: 0.3, b: 0.7, a: 1}
+  - occupiedPositions:
+    - {x: 0, y: 0}
+    - {x: 1, y: 0}
+    - {x: 1, y: 1}
+    arrowColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  - occupiedPositions:
+    - {x: 8, y: 2}
+    - {x: 8, y: 1}
+    - {x: 9, y: 1}
+    arrowColor: {r: 1, g: 0.5, b: 0, a: 1}
+  - occupiedPositions:
+    - {x: 7, y: 6}
+    - {x: 8, y: 6}
+    - {x: 8, y: 7}
+    arrowColor: {r: 0.3, g: 0.7, b: 1, a: 1}
+  - occupiedPositions:
+    - {x: 2, y: 3}
+    - {x: 2, y: 4}
+    arrowColor: {r: 1, g: 0.3, b: 0.7, a: 1}
+  - occupiedPositions:
+    - {x: 4, y: 2}
+    - {x: 4, y: 1}
+    arrowColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  - occupiedPositions:
+    - {x: 9, y: 7}
+    - {x: 9, y: 6}
+    arrowColor: {r: 1, g: 0.5, b: 0, a: 1}
+  - occupiedPositions:
+    - {x: 5, y: 2}
+    - {x: 6, y: 2}
+    - {x: 6, y: 3}
+    arrowColor: {r: 0.3, g: 0.7, b: 1, a: 1}
+  - occupiedPositions:
+    - {x: 2, y: 1}
+    - {x: 2, y: 2}
+    arrowColor: {r: 1, g: 0.3, b: 0.7, a: 1}
+  - occupiedPositions:
+    - {x: 2, y: 0}
+    - {x: 3, y: 0}
+    arrowColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  - occupiedPositions:
+    - {x: 6, y: 4}
+    - {x: 7, y: 4}
+    arrowColor: {r: 1, g: 0.5, b: 0, a: 1}

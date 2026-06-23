@@ -5,6 +5,7 @@ using Data;
 using TMPro;
 using UnityEngine.UI;
 using EasyButtons;
+using System;
 
 namespace Core
 {
@@ -54,12 +55,19 @@ namespace Core
         void Start()
         {
             LoadData();
+            CountdownTimer.OnTimerComplete += OnTimerComplete;
 
             // if (levels.Count > 0)
             //     LoadLevel(currentLevelIndex);
             // else
             //     Debug.LogError("No levels assigned to LevelManager!");
         }
+
+        private void OnTimerComplete()
+        {
+            OnLevelLose();
+        }
+
         public void LoadAndStart()
         {
             LoadData();
@@ -157,6 +165,17 @@ namespace Core
             UpdateUI();
             UIManager.Instance?.UpdateLevel(currentLevelIndex + 1);
             UIManager.Instance?.UpdatePowerUps(GridPowerUps, HintPowerUps);
+            UIManager.Instance?.SetLevelWinPrice(levelData.gameWinAmount);
+            UIManager.Instance?.CoinCountSetActive(false);
+            if (levelData.seconds > 0)
+            {
+                UIManager.Instance?.countdownTimer.SetActive(true);
+                UIManager.Instance?.countdownTimer.SetTimerAndStart(levelData.seconds);
+            }
+            else
+            {
+                UIManager.Instance?.countdownTimer.SetActive(false);
+            }
             Debug.Log($"Level {levelIndex + 1} loaded. Moves: {movesRemaining}");
         }
 
@@ -268,7 +287,7 @@ namespace Core
             if (GridUnlockedForLevel)
             {
                 GridUnlockedForLevel = false;
-                Debugging.GridVisualizer.Instance?.ToggleVisualizer();
+                Debugging.GridVisualizer.Instance?.SetVisualizerState(false);
             }
             // Cancel any previous checks and start a fresh repeated check
             CancelInvoke(nameof(CheckGameState));

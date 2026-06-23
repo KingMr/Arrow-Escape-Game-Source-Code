@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arrow Level Editor</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    color: #eee;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    min-height: 100vh;
+    user-select: none;
+  }
+  h1 { margin-bottom: 10px; font-weight: 300; letter-spacing: 2px; font-size: 22px; }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    background: #16213e;
+    padding: 10px 16px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .toolbar label { font-size: 12px; opacity: 0.7; }
+  .toolbar input[type="number"] {
+    width: 44px; padding: 3px 4px; border-radius: 5px;
+    border: 1px solid #333; background: #0f3460; color: #fff; font-size: 12px; text-align: center;
+  }
+  .btn {
+    padding: 4px 12px; border: 2px solid transparent; border-radius: 6px;
+    cursor: pointer; font-size: 12px; font-weight: 600;
+    transition: all 0.15s; background: #0f3460; color: #aaa;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.active { border-color: #e94560; color: #fff; background: #1a1a40; }
+
+  .btn-clear { background: #3d0000; color: #ff6b6b; }
+  .btn-clear:hover { background: #5a0000; }
+  .btn-export { background: #0a3a2a; color: #4ecca3; }
+  .btn-export:hover { background: #0d4d38; }
+  .btn-export:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .btn-import { background: #2a1a3a; color: #a29bfe; }
+  .btn-import:hover { background: #3d2a55; }
+  .btn-check { background: #1a3a2a; color: #4ecca3; border-color: #2a5a3a; }
+  .btn-check:hover { background: #2a4a3a; }
+  .btn-check.active { border-color: #4ecca3; color: #4ecca3; background: #1a3a2a; }
+  .btn-check.fail { border-color: #e94560; color: #e94560; background: #3d0000; }
+
+  .cell.selected { box-shadow: inset 0 0 0 2px #fff; }
+  .cell.selected-head { box-shadow: inset 0 0 0 3px #fff; }
+  .cell.invalid { box-shadow: inset 0 0 0 2px #e94560; }
+  .cell.invalid-head { box-shadow: inset 0 0 0 3px #ff0000; }
+
+  .arrow-list { display: flex; flex-direction: column; gap: 3px; width: 100%; margin-top: 4px; }
+  .arrow-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 3px 6px; border-radius: 4px; cursor: pointer;
+    font-size: 10px; font-family: 'Courier New', monospace;
+    border: 1px solid transparent; transition: all 0.12s;
+  }
+  .arrow-row:hover { background: #ffffff08; }
+  .arrow-row.active { border-color: #ffffff44; background: #ffffff10; }
+  .arrow-row .adel { cursor: pointer; opacity: 0.4; font-size: 12px; }
+  .arrow-row .adel:hover { opacity: 1; color: #e94560; }
+  .arrow-row .aedit { cursor: pointer; opacity: 0.4; font-size: 12px; }
+  .arrow-row .aedit:hover { opacity: 1; color: #4ecca3; }
+  .arrow-row .acolor {
+    width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0;
+    border: 1px solid #ffffff22;
+  }
+
+  .val-status {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; padding: 3px 10px; border-radius: 5px;
+    font-weight: 600;
+  }
+  .val-status.pass { background: #1a3a2a; color: #4ecca3; }
+  .val-status.fail { background: #3d0000; color: #e94560; }
+  .val-status.idle { background: #16213e; color: #666; }
+
+  .grid-wrapper {
+    background: #16213e; padding: 12px; border-radius: 10px;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+    overflow: auto; max-width: 95vw; max-height: 65vh;
+    overscroll-behavior: none; touch-action: pan-x pan-y;
+  }
+  .grid-wrapper.pan-active { touch-action: pan-x pan-y; }
+  .grid-wrapper.draw-active { touch-action: none; }
+  .grid-wrapper.pan-active .grid { touch-action: pan-x pan-y; pointer-events: none; }
+  .grid {
+    display: grid; gap: 1px;
+    background: #2a2a4a; border: 2px solid #2a2a4a; position: relative;
+    touch-action: none;
+  }
+  .cell {
+    width: min(36px, 8vw); height: min(36px, 8vw); background: #0d1b2a;
+    cursor: pointer; position: relative; transition: background 0.05s;
+  }
+  .cell:hover { filter: brightness(1.4); }
+  .cell.occupied { background: #4ecca3; }
+  .cell.painting { background: #f5a62388; }
+
+  .cell .coord {
+    position: absolute; bottom: 1px; right: 2px;
+    font-size: 7px; color: #ffffff18; pointer-events: none; font-family: monospace; line-height: 1;
+  }
+  .cell:hover .coord { color: #ffffff66; }
+
+  .cell svg.head-arrow {
+    position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2;
+  }
+
+  .stats {
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+    margin-top: 10px; background: #16213e; padding: 6px 14px;
+    border-radius: 8px; font-size: 11px; font-family: 'Courier New', monospace; min-height: 30px;
+  }
+  .stats span { opacity: 0.8; }
+
+  .info {
+    margin-top: 8px; font-size: 11px; opacity: 0.35; text-align: center; line-height: 1.5;
+  }
+
+  .color-row { display: flex; gap: 4px; align-items: center; }
+  .color-row span { font-size: 11px; opacity: 0.6; }
+  .color-swatch {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid transparent; cursor: pointer; transition: all 0.12s;
+  }
+  .color-swatch:hover { transform: scale(1.15); }
+  .color-swatch.active { border-color: #fff; transform: scale(1.2); }
+</style>
+</head>
+<body>
+
+<h1>➤ ARROW LEVEL EDITOR</h1>
+
+<div class="toolbar">
+  <label>Grid:</label>
+  <input type="number" id="colsInput" value="5" min="2" max="30">
+  <span style="opacity:0.4">×</span>
+  <input type="number" id="rowsInput" value="5" min="2" max="30">
+  <button class="btn" id="resizeBtn">Resize</button>
+
+  <span style="width:1px;height:24px;background:#333;display:inline-block"></span>
+
+  <label>Color:</label>
+  <div class="color-row" id="colorRow">
+    <div class="color-swatch active" data-color="#e03131" style="background:#e03131"></div>
+    <div class="color-swatch" data-color="#2f9e44" style="background:#2f9e44"></div>
+    <div class="color-swatch" data-color="#1971c2" style="background:#1971c2"></div>
+    <div class="color-swatch" data-color="#f08c00" style="background:#f08c00"></div>
+    <div class="color-swatch" data-color="#9c36b5" style="background:#9c36b5"></div>
+    <div class="color-swatch" data-color="#0c8599" style="background:#0c8599"></div>
+  </div>
+
+  <span style="width:1px;height:24px;background:#333;display:inline-block"></span>
+
+  <span style="width:1px;height:24px;background:#333;display:inline-block"></span>
+
+  <button class="btn btn-check" id="checkBtn">✅ Check</button>
+  <span class="val-status idle" id="valStatus">⏳ Not checked</span>
+
+  <span style="width:1px;height:24px;background:#333;display:inline-block"></span>
+
+  <button class="btn" id="panBtn" style="background:#2a1a3a;color:#a29bfe">✋ Pan: OFF</button>
+
+  <span style="width:1px;height:24px;background:#333;display:inline-block"></span>
+
+  <button class="btn btn-clear" id="clearBtn">🗑 Clear All</button>
+  <button class="btn btn-import" id="importBtn">📂 Import</button>
+  <button class="btn btn-export" id="exportBtn" disabled>📋 Export</button>
+</div>
+
+<div class="grid-wrapper">
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="stats" id="stats">
+  <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;width:100%">
+    <span id="statGrid">Grid: 5×5</span>
+    <span id="statArrows">Arrows: 0</span>
+    <span id="statMoves">Max Moves: 3</span>
+    <span id="statEditInfo" style="font-size:10px;opacity:0.5"></span>
+  </div>
+  <div class="arrow-list" id="arrowList"></div>
+</div>
+
+<div class="info">
+  Left-click drag=draw · Tap arrow=select · Right-click/✕=delete · Color swatch changes selected arrow · Arrow list → ✎ to edit
+</div>
+
+<script>
+const gridEl = document.getElementById('grid');
+const colsInput = document.getElementById('colsInput');
+const rowsInput = document.getElementById('rowsInput');
+const resizeBtn = document.getElementById('resizeBtn');
+const checkBtn = document.getElementById('checkBtn');
+const valStatus = document.getElementById('valStatus');
+const clearBtn = document.getElementById('clearBtn');
+const importBtn = document.getElementById('importBtn');
+const exportBtn = document.getElementById('exportBtn');
+const panBtn = document.getElementById('panBtn');
+const colorSwatches = document.querySelectorAll('.color-swatch');
+const statGrid = document.getElementById('statGrid');
+const statArrows = document.getElementById('statArrows');
+const statMoves = document.getElementById('statMoves');
+const statArrowList = document.getElementById('statArrowList');
+const statEditInfo = document.getElementById('statEditInfo');
+const arrowListEl = document.getElementById('arrowList');
+
+let cols = 5, rows = 5;
+let cells = [];
+let arrows = []; // { positions: [{x,y}...], color: '#hex' }
+let currentColor = '#e03131';
+let isPainting = false;
+let paintPath = [];
+let levelChecked = false;
+let selectedArrow = -1;
+let editMode = false;
+let panMode = false;
+
+function initGrid() {
+  gridEl.style.gridTemplateColumns = `repeat(${cols}, 36px)`;
+  gridEl.innerHTML = '';
+  cells = [];
+  for (let r = 0; r < rows; r++) {
+    cells[r] = [];
+    for (let c = 0; c < cols; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      const coord = document.createElement('span');
+      coord.className = 'coord';
+      coord.textContent = `${c},${r}`;
+      cell.appendChild(coord);
+      gridEl.appendChild(cell);
+      cells[r][c] = cell;
+    }
+  }
+  renderAll();
+}
+
+function isOccupied(x, y) {
+  for (const a of arrows) {
+    for (const p of a.positions) {
+      if (p.x === x && p.y === y) return true;
+    }
+  }
+  return false;
+}
+
+function getArrowAt(x, y) {
+  for (let i = 0; i < arrows.length; i++) {
+    for (const p of arrows[i].positions) {
+      if (p.x === x && p.y === y) return i;
+    }
+  }
+  return -1;
+}
+
+function renderAll() {
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = cells[r][c];
+      cell.classList.remove('occupied', 'painting', 'invalid', 'invalid-head', 'selected', 'selected-head');
+      cell.style.background = '';
+      const oldSvg = cell.querySelector('svg.head-arrow');
+      if (oldSvg) oldSvg.remove();
+    }
+  }
+
+  for (const a of arrows) {
+    drawArrow(a);
+  }
+
+  if (isPainting && paintPath.length > 0) {
+    const tempArrow = { positions: paintPath, color: currentColor };
+    drawArrow(tempArrow, true);
+  }
+
+  if (selectedArrow >= 0 && selectedArrow < arrows.length) {
+    const a = arrows[selectedArrow];
+    for (const p of a.positions) {
+      const cell = cells[p.y]?.[p.x];
+      if (cell) cell.classList.add(p === a.positions[0] ? 'selected-head' : 'selected');
+    }
+  }
+
+  updateStats();
+  const gw = document.querySelector('.grid-wrapper');
+  gw.classList.toggle('pan-active', panMode);
+  gw.classList.toggle('draw-active', !panMode);
+}
+
+function drawArrow(arrow, isPreview) {
+  const positions = arrow.positions;
+  if (positions.length === 0) return;
+
+  const color = arrow.color;
+  for (let i = 0; i < positions.length; i++) {
+    const p = positions[i];
+    const cell = cells[p.y]?.[p.x];
+    if (!cell) continue;
+    cell.classList.add(isPreview ? 'painting' : 'occupied');
+    cell.style.background = color;
+  }
+
+  // Head triangle
+  const head = positions[0];
+  const hcell = cells[head.y]?.[head.x];
+  if (!hcell) return;
+
+  let dir = { x: 0, y: -1 };
+  if (positions.length > 1) {
+    const next = positions[1];
+    dir = { x: head.x - next.x, y: head.y - next.y };
+  }
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 36 36');
+  svg.classList.add('head-arrow');
+
+  let p1, p2, p3;
+  const cx = 18, cy = 18, s = 12;
+  if (dir.x === 1) {
+    p1 = [cx + s, cy]; p2 = [cx - s, cy - s]; p3 = [cx - s, cy + s];
+  } else if (dir.x === -1) {
+    p1 = [cx - s, cy]; p2 = [cx + s, cy - s]; p3 = [cx + s, cy + s];
+  } else if (dir.y < 0) {
+    p1 = [cx, cy - s]; p2 = [cx - s, cy + s]; p3 = [cx + s, cy + s];
+  } else {
+    p1 = [cx, cy + s]; p2 = [cx - s, cy - s]; p3 = [cx + s, cy - s];
+  }
+
+  svg.innerHTML = `<polygon points="${p1.join(',')} ${p2.join(',')} ${p3.join(',')}" fill="#fff" stroke="#000" stroke-width="1.5" stroke-opacity="0.5"/>`;
+  hcell.appendChild(svg);
+}
+
+function hexToRgba(hex) {
+  const r = parseInt(hex.slice(1,3), 16) / 255;
+  const g = parseInt(hex.slice(3,5), 16) / 255;
+  const b = parseInt(hex.slice(5,7), 16) / 255;
+  return { r: +r.toFixed(4), g: +g.toFixed(4), b: +b.toFixed(4), a: 1 };
+}
+
+function rgbaToHex(r, g, b) {
+  const toHex = (v) => Math.round(v * 255).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function updateStats() {
+  statGrid.textContent = `Grid: ${cols}×${rows}`;
+  statArrows.textContent = `Arrows: ${arrows.length}`;
+  statMoves.textContent = `Max Moves: ${arrows.length + 3}`;
+  statEditInfo.textContent = editMode ? `✎ Editing Arrow ${selectedArrow+1} — click cells to extend/shrink` : '';
+
+  const dirSym = (dx, dy) => dx === 1 ? '→' : dx === -1 ? '←' : dy < 0 ? '↑' : '↓';
+  arrowListEl.innerHTML = arrows.map((a, i) => {
+    const head = a.positions[0];
+    let dir = '↑';
+    if (a.positions.length > 1) {
+      const n = a.positions[1];
+      dir = dirSym(head.x - n.x, head.y - n.y);
+    }
+    const active = i === selectedArrow ? ' active' : '';
+    return `<div class="arrow-row${active}" data-idx="${i}">
+      <span class="acolor" style="background:${a.color}"></span>
+      <span style="flex:1">#${i+1} ${dir} L${a.positions.length} (${head.x},${head.y})</span>
+      <span class="aedit" data-idx="${i}">✎</span>
+      <span class="adel" data-idx="${i}">✕</span>
+    </div>`;
+  }).join('');
+
+  arrowListEl.querySelectorAll('.arrow-row').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target.closest('.adel') || e.target.closest('.aedit')) return;
+      const i = parseInt(el.dataset.idx);
+      selectArrow(i);
+    });
+  });
+  arrowListEl.querySelectorAll('.adel').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const i = parseInt(el.dataset.idx);
+      deleteArrow(i);
+    });
+  });
+  arrowListEl.querySelectorAll('.aedit').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const i = parseInt(el.dataset.idx);
+      selectArrow(i);
+      editMode = true;
+      renderAll();
+    });
+  });
+}
+
+function selectArrow(i) {
+  if (selectedArrow === i) {
+    selectedArrow = -1;
+    editMode = false;
+  } else {
+    selectedArrow = i;
+  }
+  renderAll();
+}
+
+function deleteArrow(i) {
+  arrows.splice(i, 1);
+  if (selectedArrow === i) { selectedArrow = -1; editMode = false; }
+  else if (selectedArrow > i) selectedArrow--;
+  levelChecked = false;
+  checkBtn.classList.remove('active', 'fail');
+  valStatus.className = 'val-status idle';
+  valStatus.textContent = '⏳ Not checked';
+  exportBtn.disabled = true;
+  renderAll();
+}
+
+// ---- 3-Rule Validation ----
+
+function getArrowDir(a) {
+  if (a.positions.length < 2) return { x: 0, y: -1 };
+  const h = a.positions[0], n = a.positions[1];
+  return { x: h.x - n.x, y: h.y - n.y };
+}
+
+function validateLevel() {
+  const errors = [];
+  const cellMap = {};
+
+  // Rule 1: Each arrow must have ≥ 2 cells
+  arrows.forEach((a, i) => {
+    if (a.positions.length < 2) {
+      errors.push(`Arrow ${i+1}: only ${a.positions.length} cell(s), minimum 2 required`);
+      const p = a.positions[0];
+      const cell = cells[p.y]?.[p.x];
+      if (cell) cell.classList.add('invalid');
+    }
+  });
+
+  // Rule 2: No overlapping cells between arrows
+  arrows.forEach((a, i) => {
+    a.positions.forEach(p => {
+      const key = `${p.x},${p.y}`;
+      if (cellMap[key] !== undefined) {
+        if (!errors.includes(`Overlap at (${p.x},${p.y}) between arrows`)) {
+          errors.push(`Arrow ${cellMap[key]+1} & ${i+1} overlap at (${p.x},${p.y})`);
+        }
+        const cell = cells[p.y]?.[p.x];
+        if (cell) cell.classList.add('invalid');
+      }
+      cellMap[key] = i;
+    });
+  });
+
+  // Rule 3: No head-to-head (arrows pointing directly at each other's head)
+  arrows.forEach((a, i) => {
+    const dirA = getArrowDir(a);
+    const hA = a.positions[0];
+    const nextA = { x: hA.x + dirA.x, y: hA.y + dirA.y };
+    arrows.forEach((b, j) => {
+      if (j <= i) return;
+      const dirB = getArrowDir(b);
+      const hB = b.positions[0];
+      const nextB = { x: hB.x + dirB.x, y: hB.y + dirB.y };
+      if (nextA.x === hB.x && nextA.y === hB.y && nextB.x === hA.x && nextB.y === hA.y) {
+        errors.push(`Head-to-head: Arrow ${i+1} and Arrow ${j+1} point at each other`);
+        const cA = cells[hA.y]?.[hA.x];
+        const cB = cells[hB.y]?.[hB.x];
+        if (cA) cA.classList.add('invalid-head');
+        if (cB) cB.classList.add('invalid-head');
+      }
+    });
+  });
+
+  // Rule 4: No self-block — check full path against original body
+  // The game's CheckPathClear inspects ALL occupied cells at once (before clearing tail),
+  // so we check the entire path from head+dir against the arrow's current positions.
+  arrows.forEach((a, i) => {
+    if (a.positions.length < 2) return;
+    const dir = getArrowDir(a);
+    const bodySet = new Set(a.positions.map(p => `${p.x},${p.y}`));
+    let cx = a.positions[0].x + dir.x, cy = a.positions[0].y + dir.y;
+    let step = 0;
+    while (cx >= 0 && cx < cols && cy >= 0 && cy < rows) {
+      if (bodySet.has(`${cx},${cy}`)) {
+        const where = step === 0 ? '' : ` after ${step} move(s)`;
+        errors.push(`Arrow ${i+1}: self-block${where} — will hit own body at (${cx},${cy})`);
+        const cell = cells[a.positions[0].y]?.[a.positions[0].x];
+        if (cell) cell.classList.add('invalid-head');
+        const bcell = cells[cy]?.[cx];
+        if (bcell) bcell.classList.add('invalid');
+        return;
+      }
+      cx += dir.x; cy += dir.y; step++;
+    }
+  });
+
+  // Rule 5: No deadlock — check full path (not just first cell), iterative resolution
+  const blockSet = {};  // blockSet[i] = Set of arrow indices blocking arrow i anywhere in its path
+  const canMove = new Array(arrows.length).fill(false);
+
+  arrows.forEach((a, i) => {
+    if (a.positions.length < 2) { canMove[i] = true; return; }
+    const head = a.positions[0];
+    const dir = getArrowDir(a);
+    if (dir.x === 0 && dir.y === 0) { canMove[i] = true; return; }
+
+    let cx = head.x + dir.x, cy = head.y + dir.y;
+    const blockers = new Set();
+    while (cx >= 0 && cx < cols && cy >= 0 && cy < rows) {
+      const owner = getArrowAt(cx, cy);
+      if (owner !== -1 && owner !== i) blockers.add(owner);
+      cx += dir.x;
+      cy += dir.y;
+    }
+    blockSet[i] = blockers;
+  });
+
+  // Iteratively resolve: arrows with no blockers can move; remove them from others' blocker sets
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const newlyClear = [];
+    for (let i = 0; i < arrows.length; i++) {
+      if (canMove[i]) continue;
+      if (!blockSet[i] || blockSet[i].size === 0) newlyClear.push(i);
+    }
+    if (newlyClear.length > 0) {
+      changed = true;
+      for (const idx of newlyClear) {
+        canMove[idx] = true;
+        for (let j = 0; j < arrows.length; j++) {
+          if (blockSet[j]) blockSet[j].delete(idx);
+        }
+      }
+    }
+  }
+
+  const clearList = [];
+  for (let i = 0; i < arrows.length; i++) {
+    if (canMove[i]) clearList.push(i);
+    else {
+      errors.push(`Deadlock: Arrow ${i+1} is blocked and cannot be resolved`);
+      const cell = cells[arrows[i].positions[0].y]?.[arrows[i].positions[0].x];
+      if (cell) cell.classList.add('invalid-head');
+    }
+  }
+
+  if (clearList.length === 0 && errors.filter(e => e.startsWith('Deadlock')).length === 0) {
+    errors.push('Deadlock: no arrow has a clear path to move');
+    arrows.forEach((a, i) => {
+      const cell = cells[a.positions[0].y]?.[a.positions[0].x];
+      if (cell) cell.classList.add('invalid-head');
+    });
+  }
+
+  // Rule 6: All positions within an arrow must be unique
+  arrows.forEach((a, i) => {
+    const seen = new Set();
+    a.positions.forEach(p => {
+      const key = `${p.x},${p.y}`;
+      if (seen.has(key)) {
+        if (!errors.some(e => e.startsWith(`Arrow ${i+1}: duplicate`))) {
+          errors.push(`Arrow ${i+1}: duplicate position (${p.x},${p.y})`);
+        }
+        const cell = cells[p.y]?.[p.x];
+        if (cell) cell.classList.add('invalid');
+      }
+      seen.add(key);
+    });
+  });
+
+  // Rule 7: Arrow positions must be contiguous (adjacent consecutive cells)
+  arrows.forEach((a, i) => {
+    for (let j = 1; j < a.positions.length; j++) {
+      const prev = a.positions[j-1];
+      const curr = a.positions[j];
+      if (Math.abs(prev.x - curr.x) + Math.abs(prev.y - curr.y) !== 1) {
+        errors.push(`Arrow ${i+1}: gap between (${prev.x},${prev.y}) and (${curr.x},${curr.y})`);
+        const cell = cells[curr.y]?.[curr.x];
+        if (cell) cell.classList.add('invalid');
+      }
+    }
+  });
+
+  return errors;
+}
+
+// ---- Grid interaction ----
+
+function getGridPos(e) {
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  if (!el) return null;
+  const cell = el.closest('.cell');
+  if (!cell) return null;
+  return { x: parseInt(cell.dataset.c), y: parseInt(cell.dataset.r) };
+}
+
+function inBounds(x, y) {
+  return x >= 0 && x < cols && y >= 0 && y < rows;
+}
+
+gridEl.addEventListener('pointerdown', e => {
+  const pos = getGridPos(e);
+  if (!pos || !inBounds(pos.x, pos.y)) return;
+
+  if (e.button === 2) {
+    const idx = getArrowAt(pos.x, pos.y);
+    if (idx !== -1) {
+      deleteArrow(idx);
+    }
+    return;
+  }
+  if (e.button !== 0) return;
+
+  if (panMode) return;
+
+  if (editMode && selectedArrow >= 0 && selectedArrow < arrows.length) {
+    const a = arrows[selectedArrow];
+    const edge = a.positions.length - 1;
+    const first = a.positions[0];
+    const last = a.positions[edge];
+
+    // Click on first cell (head) → remove head (change direction or delete)
+    if (pos.x === first.x && pos.y === first.y) {
+      if (a.positions.length <= 2) { deleteArrow(selectedArrow); return; }
+      a.positions.shift();
+      renderAll();
+      return;
+    }
+    // Click on last cell (tail) → remove tail
+    if (pos.x === last.x && pos.y === last.y) {
+      if (a.positions.length <= 2) { deleteArrow(selectedArrow); return; }
+      a.positions.pop();
+      renderAll();
+      return;
+    }
+    // Click on empty adjacent to first → extend head
+    if (Math.abs(pos.x - first.x) + Math.abs(pos.y - first.y) === 1 && !isOccupied(pos.x, pos.y) && !a.positions.some(p => p.x === pos.x && p.y === pos.y)) {
+      a.positions.unshift({ x: pos.x, y: pos.y });
+      renderAll();
+      return;
+    }
+    // Click on empty adjacent to last → extend tail
+    if (Math.abs(pos.x - last.x) + Math.abs(pos.y - last.y) === 1 && !isOccupied(pos.x, pos.y) && !a.positions.some(p => p.x === pos.x && p.y === pos.y)) {
+      a.positions.push({ x: pos.x, y: pos.y });
+      renderAll();
+      return;
+    }
+    const hitIdx = getArrowAt(pos.x, pos.y);
+    if (hitIdx === selectedArrow) {
+      selectArrow(-1);
+    } else if (hitIdx !== -1) {
+      editMode = false;
+      selectArrow(hitIdx);
+    }
+    return;
+  }
+
+  const occIdx = getArrowAt(pos.x, pos.y);
+  if (occIdx !== -1) {
+    selectArrow(occIdx);
+    return;
+  }
+
+  isPainting = true;
+  paintPath = [pos];
+  renderAll();
+});
+
+gridEl.addEventListener('pointermove', e => {
+  if (!isPainting || panMode) return;
+  const pos = getGridPos(e);
+  if (!pos || !inBounds(pos.x, pos.y)) return;
+
+  const last = paintPath[paintPath.length - 1];
+  if (pos.x === last.x && pos.y === last.y) return;
+
+  // Must be adjacent (Manhattan distance 1)
+  if (Math.abs(pos.x - last.x) + Math.abs(pos.y - last.y) !== 1) return;
+
+  // No self-intersection and no overlap with existing arrows
+  if (paintPath.some(p => p.x === pos.x && p.y === pos.y)) return;
+  if (isOccupied(pos.x, pos.y)) return;
+
+  paintPath.push(pos);
+  renderAll();
+});
+
+window.addEventListener('pointerup', e => {
+  if (!isPainting) return;
+  isPainting = false;
+
+  if (paintPath.length >= 2) {
+    arrows.push({ positions: paintPath.slice(), color: currentColor });
+  }
+  paintPath = [];
+  levelChecked = false;
+  checkBtn.classList.remove('active', 'fail');
+  valStatus.className = 'val-status idle';
+  valStatus.textContent = '⏳ Not checked';
+  exportBtn.disabled = true;
+  renderAll();
+});
+
+gridEl.addEventListener('contextmenu', e => e.preventDefault());
+
+// ---- Toolbar ----
+
+colorSwatches.forEach(el => {
+  el.addEventListener('click', () => {
+    colorSwatches.forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    currentColor = el.dataset.color;
+    if (selectedArrow >= 0 && selectedArrow < arrows.length) {
+      arrows[selectedArrow].color = currentColor;
+      renderAll();
+    }
+  });
+});
+
+checkBtn.addEventListener('click', () => {
+  levelChecked = false;
+  selectedArrow = -1;
+  editMode = false;
+  checkBtn.classList.remove('active', 'fail');
+  renderAll();
+
+  if (arrows.length === 0) {
+    valStatus.className = 'val-status fail';
+    valStatus.textContent = '✗ No arrows placed';
+    return;
+  }
+
+  const errors = validateLevel();
+
+  if (errors.length === 0) {
+    levelChecked = true;
+    checkBtn.classList.add('active');
+    valStatus.className = 'val-status pass';
+    valStatus.textContent = `✓ Valid! ${arrows.length} arrows, max ${arrows.length + 3} moves`;
+    exportBtn.disabled = false;
+  } else {
+    checkBtn.classList.add('fail');
+    valStatus.className = 'val-status fail';
+    valStatus.textContent = `✗ ${errors.length} issue(s) found`;
+    const detail = errors.map((e, i) => `${i+1}. ${e}`).join('\n');
+    alert(`Validation failed:\n\n${detail}`);
+    exportBtn.disabled = true;
+  }
+});
+
+clearBtn.addEventListener('click', () => {
+  if (!confirm('Clear all arrows?')) return;
+  arrows = [];
+  isPainting = false;
+  paintPath = [];
+  selectedArrow = -1;
+  editMode = false;
+  levelChecked = false;
+  checkBtn.classList.remove('active', 'fail');
+  valStatus.className = 'val-status idle';
+  valStatus.textContent = '⏳ Not checked';
+  exportBtn.disabled = true;
+  renderAll();
+});
+
+panBtn.addEventListener('click', () => {
+  panMode = !panMode;
+  panBtn.textContent = panMode ? '✋ Pan: ON' : '✋ Pan: OFF';
+  panBtn.style.background = panMode ? '#3a1a1a' : '#2a1a3a';
+  const gw = document.querySelector('.grid-wrapper');
+  gw.classList.toggle('pan-active', panMode);
+  gw.classList.toggle('draw-active', !panMode);
+});
+
+resizeBtn.addEventListener('click', () => {
+  const nc = parseInt(colsInput.value);
+  const nr = parseInt(rowsInput.value);
+  if (isNaN(nc) || isNaN(nr) || nc < 2 || nr < 2 || nc > 30 || nr > 30) {
+    alert('Grid size: 2\u201330');
+    return;
+  }
+  cols = nc; rows = nr;
+  arrows = arrows.filter(a =>
+    a.positions.every(p => p.x < cols && p.y < rows)
+  );
+  isPainting = false; paintPath = [];
+  selectedArrow = -1; editMode = false;
+  levelChecked = false;
+  checkBtn.classList.remove('active', 'fail');
+  valStatus.className = 'val-status idle';
+  valStatus.textContent = '⏳ Not checked';
+  exportBtn.disabled = true;
+  initGrid();
+});
+
+exportBtn.addEventListener('click', () => {
+  if (!levelChecked) {
+    alert('Please validate the level first (click ✅ Check)');
+    return;
+  }
+  const maxMoves = arrows.length + 3;
+  const data = {
+    gridDimensions: { x: cols, y: rows },
+    cols, rows,
+    maxMoves,
+    defaultCameraSize: cols > rows ? cols * 4 : rows * 4,
+    minZoom: 2,
+    maxZoom: cols > rows ? cols * 6 : rows * 6,
+    gameWinMode: 1,
+    arrows: arrows.map(a => ({
+      occupiedPositions: a.positions.map(p => ({ x: p.x, y: (rows - 1) - p.y })),
+      arrowColor: hexToRgba(a.color)
+    }))
+  };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'level.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+importBtn.addEventListener('click', () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        applyData(data);
+      } catch(err) {
+        alert('Invalid JSON file');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+});
+
+function applyData(data) {
+  cols = data.cols || data.gridDimensions?.x || 5;
+  rows = data.rows || data.gridDimensions?.y || 5;
+  colsInput.value = cols;
+  rowsInput.value = rows;
+
+  if (data.arrows) {
+    arrows = data.arrows.map(a => ({
+      positions: (a.occupiedPositions || a.positions || []).map(p => ({ x: p.x, y: (rows - 1) - p.y })),
+      color: a.arrowColor
+        ? rgbaToHex(a.arrowColor.r ?? 1, a.arrowColor.g ?? 0, a.arrowColor.b ?? 0)
+        : a.color || currentColor
+    }));
+  }
+  isPainting = false;
+  paintPath = [];
+  selectedArrow = -1;
+  editMode = false;
+  levelChecked = false;
+  checkBtn.classList.remove('active', 'fail');
+  valStatus.className = 'val-status idle';
+  valStatus.textContent = '⏳ Not checked';
+  exportBtn.disabled = true;
+  initGrid();
+}
+
+initGrid();
+</script>
+</body>
+</html>

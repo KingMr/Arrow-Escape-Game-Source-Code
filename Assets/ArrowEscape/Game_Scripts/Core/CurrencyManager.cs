@@ -31,6 +31,7 @@ namespace Core
             Coins = PlayerPrefs.GetInt(PREF_COINS, 0); // Default 0 coins
         }
 
+        [EasyButtons.Button]
         public void AddCoins(int amount)
         {
             if (amount < 0) return;
@@ -40,6 +41,7 @@ namespace Core
             Debug.Log($"Added {amount} coins. Total: {Coins}");
         }
 
+        [EasyButtons.Button]
         public bool SpendCoins(int amount)
         {
             if (amount <= 0) return false;

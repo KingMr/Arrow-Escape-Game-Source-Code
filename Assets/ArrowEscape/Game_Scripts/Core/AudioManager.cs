@@ -1,4 +1,5 @@
 using System;
+using DG.Tweening;
 using Solo.MOST_IN_ONE;
 using UnityEngine;
 
@@ -25,6 +26,7 @@ namespace Core
         private bool isVibration = true;
 
         private AudioSource audioSource;
+        private AudioSource arrowOutAudioSource;
 
         private void Awake()
         {
@@ -33,6 +35,7 @@ namespace Core
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
                 audioSource = gameObject.AddComponent<AudioSource>();
+                arrowOutAudioSource = gameObject.AddComponent<AudioSource>();
             }
             else
             {
@@ -57,7 +60,11 @@ namespace Core
 
         public void PlayMoveSound()
         {
-            PlaySound(moveSound);
+            PlaySound(buttonSound);
+            DOVirtual.DelayedCall(0.1f, () =>
+            {
+                PlaySound(moveSound);
+            }, false);
         }
 
         public void PlayExitSound()
@@ -100,8 +107,17 @@ namespace Core
             if (!isSoundOn) return;
             if (clip != null && audioSource != null)
             {
+                if (clip == moveSound)
+                {
+                    ArrowOutSound(clip);
+                    return;
+                }
                 audioSource.PlayOneShot(clip, volume);
             }
+        }
+        private void ArrowOutSound(AudioClip clip)
+        {
+            arrowOutAudioSource.PlayOneShot(clip, 0.2f);
         }
 
         public void PlaySuccessHaptic()

@@ -11,6 +11,9 @@ namespace Core
         public float flashDuration = 0.3f;
 
         [Header("Particle Effects")]
+        public Camera uiCamera;
+        public GameObject clickCanvas;
+        public GameObject clickParticlePrefab;
         public GameObject winParticlePrefab;
         public GameObject loseParticlePrefab;
 
@@ -40,7 +43,9 @@ namespace Core
             if (winParticlePrefab != null)
             {
                 Vector3 centerPos = GetCameraCenter();
-                Instantiate(winParticlePrefab, centerPos, Quaternion.identity);
+                GameObject go = Instantiate(winParticlePrefab, centerPos, Quaternion.identity);
+                if (go.GetComponent<AutoDestroyParticle>() == null)
+                    go.AddComponent<AutoDestroyParticle>();
             }
         }
 
@@ -49,7 +54,42 @@ namespace Core
             if (loseParticlePrefab != null)
             {
                 Vector3 centerPos = GetCameraCenter();
-                Instantiate(loseParticlePrefab, centerPos, Quaternion.identity);
+                GameObject go = Instantiate(loseParticlePrefab, centerPos, Quaternion.identity);
+                if (go.GetComponent<AutoDestroyParticle>() == null)
+                    go.AddComponent<AutoDestroyParticle>();
+            }
+        }
+
+        public void PlayClickEffect(Vector3 position)
+        {
+            if (clickParticlePrefab == null) return;
+
+            GameObject particle = Instantiate(clickParticlePrefab);
+            
+            if (clickCanvas != null)
+            {
+                particle.transform.SetParent(clickCanvas.transform, false);
+                
+                if (uiCamera != null)
+                {
+                    // Use UI camera to convert screen point to world point
+                    float distance = Mathf.Abs(uiCamera.transform.position.z);
+                    Vector3 worldPos = uiCamera.ScreenToWorldPoint(new Vector3(position.x, position.y, distance));
+                    particle.transform.position = worldPos;
+                }
+                else
+                {
+                    particle.transform.position = position;
+                }
+            }
+            else
+            {
+                particle.transform.position = position;
+            }
+
+            if (particle.GetComponent<AutoDestroyParticle>() == null)
+            {
+                particle.AddComponent<AutoDestroyParticle>();
             }
         }
 

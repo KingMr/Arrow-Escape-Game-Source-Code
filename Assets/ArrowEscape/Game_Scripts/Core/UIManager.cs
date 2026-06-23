@@ -13,14 +13,13 @@ namespace Core
 
         [Header("Script")]
         public HomeScreenUI homeScreenUI;
+        public CountdownTimer countdownTimer;
 
         [Header("In-Game UI")]
         public GameObject inGameUI;
         public GameObject movesUIObject;
         public TextMeshProUGUI movesText;
         public TextMeshProUGUI levelText;
-        public TextMeshProUGUI coinText; // New Coin Text
-        public Transform coinIconTransform; // Target for coin animation
         public Button homeButton;
         public Button retryButton;
         public ImageBlink alertBorderImage;
@@ -36,8 +35,14 @@ namespace Core
         [Header("Win/Lose Elements")]
         public TextMeshProUGUI winLevelText;
         public TextMeshProUGUI loseLevelText;
+        public TextMeshProUGUI winPriceText;
         public Image winImage;
         public Image loseImage;
+
+        [Header("Coin Count")]
+        public GameObject coinCountObj;
+        public TextMeshProUGUI coinText; // New Coin Text
+        public Transform coinIconTransform; // Target for coin animation
 
         [Header("Buttons")]
         public Button winNextButton;
@@ -51,6 +56,13 @@ namespace Core
 
         private bool isSequenceRunning = false;
         public bool IsSequenceRunning => isSequenceRunning;
+
+        private int levelWinPrice;
+
+        public void SetLevelWinPrice(int value)
+        {
+            levelWinPrice = value;
+        }
 
         private void Awake()
         {
@@ -70,7 +82,7 @@ namespace Core
             // Hide panels initially
             if (winPanel != null) winPanel.SetActive(false);
             if (losePanel != null) losePanel.SetActive(false);
-            if (inGameUI != null) inGameUI.SetActive(true);
+            // if (inGameUI != null) inGameUI.SetActive(true);
 
             // Ensure GridVisualizer exists
             if (Debugging.GridVisualizer.Instance == null)
@@ -153,6 +165,7 @@ namespace Core
         {
             AudioManager.Instance?.PlayButtonSound();
             AudioManager.Instance?.PlayLightImpactHaptic();
+            inGameUI.SetActive(false);
             LevelManager.Instance.ClearLevel();
             homeScreenUI.Show();
         }
@@ -245,9 +258,11 @@ namespace Core
                 winPanel.SetActive(true);
                 if (winLevelText != null) winLevelText.text = $"COMPLETED";
                 if (winImage != null) StartCoroutine(AnimatePopup(winImage.transform, 0.5f));
+                winPriceText.text = $"+{levelWinPrice}";
             }
 
             if (losePanel != null) losePanel.SetActive(false);
+            CoinCountSetActive(true);
         }
 
         public void ShowLoseUI(int level)
@@ -272,6 +287,7 @@ namespace Core
             if (losePanel != null) losePanel.SetActive(false);
             SetInGameUIActive(true);
         }
+
 
         private void SetInGameUIActive(bool active)
         {
@@ -305,7 +321,7 @@ namespace Core
             AudioManager.Instance?.PlayButtonSound();
 
             // Award coins and play animation locally
-            int rewardAmount = 50;
+            int rewardAmount = levelWinPrice;
             if (CurrencyManager.Instance != null)
             {
                 CurrencyManager.Instance.AddCoins(rewardAmount);
@@ -553,6 +569,10 @@ namespace Core
 
                 yield return wait;
             }
+        }
+        public void CoinCountSetActive(bool value)
+        {
+            coinCountObj.SetActive(value);
         }
     }
 }

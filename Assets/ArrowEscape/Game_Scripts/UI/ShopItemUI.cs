@@ -76,31 +76,31 @@ namespace UI
 
         }
 
-        void Update()
-        {
-            if (myTheme == null) return;
+        // void Update()
+        // {
+        //     if (myTheme == null) return;
 
-            // If locked:
-            // - If Ads Enabled: Check Ad Ready
-            // - If Ads Disabled: Check Coin Balance
-            if (!ThemeManager.Instance.IsThemeUnlocked(myTheme.id))
-            {
-                bool useAds = AdMobManager.Instance != null && AdMobManager.Instance.enableAds;
+        //     // If locked:
+        //     // - If Ads Enabled: Check Ad Ready
+        //     // - If Ads Disabled: Check Coin Balance
+        //     if (!ThemeManager.Instance.IsThemeUnlocked(myTheme.id))
+        //     {
+        //         bool useAds = AdMobManager.Instance != null && AdMobManager.Instance.enableAds;
 
-                // if (useAds)
-                // {
-                //     bool adReady = AdMobManager.Instance.IsRewardedReady();
-                //     if (actionButton != null) actionButton.interactable = adReady;
-                // }
-                // else
-                {
-                    // Use Coins
-                    int price = myTheme.price > 0 ? myTheme.price : 500; // Default price if not set
-                    bool canAfford = CurrencyManager.Instance != null && CurrencyManager.Instance.Coins >= price;
-                    if (actionButton != null) actionButton.interactable = canAfford;
-                }
-            }
-        }
+        //         // if (useAds)
+        //         // {
+        //         //     bool adReady = AdMobManager.Instance.IsRewardedReady();
+        //         //     if (actionButton != null) actionButton.interactable = adReady;
+        //         // }
+        //         // else
+        //         {
+        //             // Use Coins
+        //             int price = myTheme.price > 0 ? myTheme.price : 500; // Default price if not set
+        //             bool canAfford = CurrencyManager.Instance != null && CurrencyManager.Instance.Coins >= price;
+        //             if (actionButton != null) actionButton.interactable = canAfford;
+        //         }
+        //     }
+        // }
 
         public void RefreshState()
         {
@@ -125,6 +125,7 @@ namespace UI
             {
                 rvObj.SetActive(false);
                 buttonCoinImageObj.SetActive(false);
+                actionButton.gameObject.SetActive(true);
                 // Unlocked but not selected
                 if (actionButtonText != null) actionButtonText.text = "Select";
                 actionButton.interactable = true;
@@ -194,6 +195,7 @@ namespace UI
                     {
                         Debug.Log("Not enough coins!");
                         AudioManager.Instance?.PlayBlockedSound();
+                        shopUI.notEnoughCoinScreenUI.Show(shopUI.gameObject, true);
                     }
                 }
             }
